@@ -1,0 +1,5 @@
+export enum STATUS_PAYMENT {
+  CONFIRMED,
+  FAILED,
+  PENDING,
+}
