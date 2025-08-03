@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CodeStation - Plataforma de Videoaulas de QA
 
-## Getting Started
+Este repositório contém o código-fonte da plataforma de ensino da **CodeStation**, focada em cursos online voltados à área de **Quality Assurance (QA)**.
 
-First, run the development server:
+## ✨ Tecnologias Principais
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- [Next.js 15](https://nextjs.org/)
+- [React](https://react.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Prisma ORM](https://www.prisma.io/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [Zod](https://zod.dev/) + [React Hook Form](https://react-hook-form.com/)
+- [MUI (Material UI)](https://mui.com/)
+- [NextAuth.js](https://next-auth.js.org/)
+- [Axios](https://axios-http.com/)
+- [SWR](https://swr.vercel.app/)
+- [AWS S3](https://aws.amazon.com/s3/) (armazenamento de arquivos)
+- [Vimeo](https://vimeo.com/) (hospedagem de vídeos com acesso restrito)
+- [Resend](https://resend.com/) (envio de emails)
+- [Asaas](https://asaas.com/) (pagamentos)
+- [Sentry](https://sentry.io/) (monitoramento de erros)
+
+## ⚙️ Funcionalidades Implementadas
+
+### 🧑‍💻 Admin (Backoffice)
+
+- CRUD de Unidades (Módulos)
+- CRUD de Aulas com ordenação automática
+- CRUD de Usuários com endereço (relacionamento 1:1)
+- Paginação padronizada com metadados e links
+- Modais para criação e edição utilizando RHF + Zod + MUI
+- Validações robustas e tratamento de erros (Zod + Prisma)
+- Upload de arquivos para S3 (vídeos, imagens, contratos)
+- Área administrativa de arquivos por categoria
+
+### 📚 Plataforma do Aluno
+
+- Cadastro/matrícula com validações completas
+- Criação de usuário + endereço
+- Geração automática de contrato em PDF
+- Upload do contrato assinado
+- Área de aulas com ReactPlayer e controle de liberação
+- Integração com Vimeo (vídeos privados, acesso restrito)
+- Proteção de rota e autenticação com NextAuth
+
+### 💳 Integração com Pagamentos (Asaas)
+
+- Criação de cliente e cobrança via API do Asaas
+- Suporte a Pix, Boleto e Cartão (com parcelamento até 12x)
+- Validação automática via Webhook do Asaas
+- Liberação do curso após pagamento confirmado
+- Link de cobrança reaproveitado ou regenerado se expirado
+
+### 🔒 Recuperação de Senha
+
+- Modal de "Esqueceu a senha?" com validação por código PIN
+- Envio de email via Resend
+- Validação do código
+- Redefinição de senha com validação Zod
+
+## 📁 Estrutura da Aplicação
+
+```
+src/
+├── app/                  # Estrutura de rotas Next.js 15
+├── components/           # Componentes reutilizáveis (modais, formulários, player, etc.)
+├── lib/                  # Instâncias do Axios, helpers de API, utilitários
+├── modules/              # Domínios principais como authentication, enrollment, payments, backoffice
+├── pages/                # Páginas legacy (se houver)
+├── styles/               # Temas e estilos globais
+├── generated/prisma/     # Código gerado pelo Prisma
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔐 Segurança
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Tokens JWT armazenados com segurança em cookies
+- Validação de sessão com NextAuth
+- Middleware de proteção de rotas (públicas x privadas)
+- Verificação de assinatura do contrato
+- Acesso ao vídeo via embed do Vimeo com domínio restrito
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📌 Como Rodar o Projeto Localmente
 
-## Learn More
+```bash
+# Clonar o repositório
+git clone https://github.com/sua-org/codestation.git
+cd codestation
 
-To learn more about Next.js, take a look at the following resources:
+# Instalar dependências
+npm install
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Criar arquivo .env com base no .env.example
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Rodar o projeto
+npm run dev
+```
 
-## Deploy on Vercel
+## 🚀 Futuras Funcionalidades
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Área do aluno com progresso
+- Certificados automáticos
+- Notificações por e-mail/SMS
+- Dashboard analítico (admin)
+- Versão white-label para outras instituições
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🧠 Contribuindo
+
+Contribuições são bem-vindas! Siga o padrão dos hooks, validações com Zod, e estrutura modularizada em `/modules`.
+
+## 🧾 Licença
+
+Este projeto é privado e licenciado sob uso exclusivo da CodeStation. Todos os direitos reservados.
