@@ -34,6 +34,12 @@ function AccountSidebarPreview(props: AccountPreviewProps & { mini: boolean }) {
 const pages = [
   {
     id: 1,
+    url: "/painel/perfil",
+    label: "Perfil",
+    description: "Gerenciar informações pessoais",
+  },
+  {
+    id: 2,
     url: "/painel/pagamento",
     label: "Pagamento",
     description: "Histórico de pagamentos",
