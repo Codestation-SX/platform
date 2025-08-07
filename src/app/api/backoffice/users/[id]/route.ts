@@ -32,9 +32,22 @@ export async function GET(
         cpf: true,
         birthDate: true,
         educationLevel: true,
+        paymentDeferred: true,
         role: true,
         createdAt: true,
         updatedAt: true,
+        address: {
+          select: {
+            id: true,
+            street: true,
+            number: true,
+            complement: true,
+            neighborhood: true,
+            city: true,
+            state: true,
+            zipCode: true,
+          },
+        },
       },
     });
 

@@ -20,7 +20,18 @@ export function UsersBackofficePage() {
     { field: "firstName", headerName: "Nome", flex: 1 },
     { field: "lastName", headerName: "Sobrenome", flex: 1 },
     { field: "email", headerName: "Email", flex: 1 },
-    { field: "role", headerName: "Função", flex: 1 },
+    {
+      field: "role",
+      headerName: "Função",
+      width: 150,
+      renderCell: ({ row }) => (row.role === "student" ? "Aluno" : "ADMIN"),
+    },
+    {
+      field: "paymentDeferred",
+      headerName: "Pós-Emprego",
+      width: 150,
+      renderCell: ({ row }) => (row.paymentDeferred ? "Sim" : "Não"),
+    },
     {
       field: "actions",
       headerName: "Ações",

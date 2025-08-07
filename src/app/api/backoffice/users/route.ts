@@ -19,6 +19,7 @@ const userSchema = z.object({
   birthDate: z.coerce.date(),
   educationLevel: z.string().min(1),
   role: z.enum(["student", "admin"]).optional(),
+  paymentDeferred: z.boolean().optional(),
   address: z.object({
     zipCode: z.string().min(1, "CEP obrigatório"),
     state: z.string().min(1, "Estado obrigatório"),
@@ -63,6 +64,7 @@ export async function GET(req: NextRequest) {
         birthDate: true,
         educationLevel: true,
         role: true,
+        paymentDeferred: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -123,7 +125,7 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const data = updateUserSchema.parse(body);
     const { id, address, ...rest } = data;
-
+    console.log(rest);
     if (rest.password) {
       rest.password = await bcrypt.hash(rest.password, 10);
     }
