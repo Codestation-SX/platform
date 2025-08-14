@@ -47,69 +47,11 @@ export default function Footer() {
       >
         <Box
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-            minWidth: { xs: "100%", sm: "60%" },
-          }}
-        >
-          <Box sx={{ width: { xs: "100%", sm: "60%" } }}>
-            <Typography
-              variant="body2"
-              gutterBottom
-              sx={{ fontWeight: 600, mt: 2 }}
-            >
-              CodeStation
-            </Typography>
-            <Typography
-              variant="body2"
-              gutterBottom
-              sx={{ fontWeight: 600, mt: 2 }}
-            >
-              Assine a newsletter
-            </Typography>
-            <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
-              Receba atualizações semanais. Sem spam, prometemos!
-            </Typography>
-            <InputLabel htmlFor="email-newsletter">Email</InputLabel>
-            <Stack direction="row" spacing={1} useFlexGap>
-              <TextField
-                id="email-newsletter"
-                hiddenLabel
-                size="small"
-                variant="outlined"
-                fullWidth
-                aria-label="Digite seu e-mail"
-                placeholder="Seu endereço de e-mail"
-                slotProps={{
-                  htmlInput: {
-                    autoComplete: "off",
-                    "aria-label": "Digite seu e-mail",
-                  },
-                }}
-                sx={{ width: "250px" }}
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                sx={{ flexShrink: 0 }}
-              >
-                Assinar
-              </Button>
-            </Stack>
-          </Box>
-        </Box>
-        <Box
-          sx={{
             display: { xs: "none", sm: "flex" },
             flexDirection: "column",
             gap: 1,
           }}
         >
-          <Link color="text.secondary" variant="body2" href="#">
-            Preços
-          </Link>
           <Link color="text.secondary" variant="body2" href="#">
             Perguntas frequentes
           </Link>
@@ -124,7 +66,7 @@ export default function Footer() {
           <Typography variant="body2" sx={{ fontWeight: "medium" }}>
             Empresa
           </Typography>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="/quem-somos">
             Sobre nós
           </Link>
         </Box>

@@ -62,17 +62,9 @@ export default function AppAppBar() {
                 variant="text"
                 color="info"
                 size="small"
-                href="/precos"
+                href="/quem-somos"
               >
-                Preços
-              </Button>
-              <Button
-                variant="text"
-                color="info"
-                size="small"
-                sx={{ minWidth: 0 }}
-              >
-                Perguntas frequentes
+                Quem somos
               </Button>
             </Box>
           </Box>
@@ -104,6 +96,15 @@ export default function AppAppBar() {
             <ColorModeIconDropdown />
           </Box>
           <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
+            <Button
+              LinkComponent={Link}
+              variant="text"
+              color="info"
+              size="small"
+              href="/quem-somos"
+            >
+              Quem somos
+            </Button>
             <ColorModeIconDropdown size="medium" />
             <IconButton aria-label="Menu button" onClick={toggleDrawer(true)}>
               <MenuIcon />

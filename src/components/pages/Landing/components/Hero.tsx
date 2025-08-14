@@ -103,55 +103,7 @@ export default function Hero() {
             Domine testes de software com nossos cursos online. Acesse conteúdos
             atualizados, práticos e focados no mercado de QA.
           </Typography>
-
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={1}
-            useFlexGap
-            sx={{ pt: 2, width: { xs: "100%", sm: "350px" } }}
-          >
-            <InputLabel htmlFor="email-hero" sx={visuallyHidden}>
-              Email
-            </InputLabel>
-            <TextField
-              id="email-hero"
-              hiddenLabel
-              size="small"
-              variant="outlined"
-              aria-label="Digite seu e-mail"
-              placeholder="Seu endereço de e-mail"
-              fullWidth
-              slotProps={{
-                htmlInput: {
-                  autoComplete: "off",
-                  "aria-label": "Digite seu e-mail",
-                },
-              }}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              sx={{ minWidth: "fit-content" }}
-            >
-              Comece agora
-            </Button>
-          </Stack>
-
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ textAlign: "center" }}
-          >
-            Ao clicar em &quot;Comece agora&quot;, você concorda com os
-            nossos&nbsp;
-            <Link href="#" color="primary">
-              Termos e Condições
-            </Link>
-            .
-          </Typography>
         </Stack>
-        <StyledBox id="image" />
       </Container>
     </Box>
   );
