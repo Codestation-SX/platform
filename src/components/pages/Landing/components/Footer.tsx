@@ -52,17 +52,6 @@ export default function Footer() {
             gap: 1,
           }}
         >
-          <Link color="text.secondary" variant="body2" href="#">
-            Perguntas frequentes
-          </Link>
-        </Box>
-        <Box
-          sx={{
-            display: { xs: "none", sm: "flex" },
-            flexDirection: "column",
-            gap: 1,
-          }}
-        >
           <Typography variant="body2" sx={{ fontWeight: "medium" }}>
             Empresa
           </Typography>
@@ -86,9 +75,9 @@ export default function Footer() {
           <Link color="text.secondary" variant="body2" href="#">
             Política de privacidade
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          {/* <Link color="text.secondary" variant="body2" href="#">
             Contato
-          </Link>
+          </Link> */}
         </Box>
       </Box>
       <Box

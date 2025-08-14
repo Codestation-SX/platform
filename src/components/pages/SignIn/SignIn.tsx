@@ -56,10 +56,18 @@ export default function SignIn({ role }: { role?: Role }) {
       if (res?.ok) {
         router.push(role === "admin" ? "/backoffice" : "/painel");
       }
+
+      if (res?.error) {
+        setLoginError("Credenciais inválidas. Tente novamente.");
+      }
     } catch (err) {
-      setLoginError("Credenciais inválidas. Tente novamente.");
+      setLoginError(
+        "Erro ao tentar fazer login. Por favor, tente novamente mais tarde."
+      );
     }
   };
+
+  console.log(loginError);
 
   return (
     <StyledContainer direction="column" justifyContent="space-between">
