@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
+import { handleApiError } from "@/utils/api/handleApiError";
 
 const schema = z.object({
   email: z.string().email(),
@@ -11,31 +12,36 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { email, pin, newPassword } = schema.parse(body);
+  try {
+    const { email, pin, newPassword } = schema.parse(body);
 
-  const record = await prisma.passwordReset.findFirst({
-    where: { email, pin, used: false },
-    orderBy: { createdAt: "desc" },
-  });
+    const record = await prisma.passwordReset.findFirst({
+      where: { email, pin, used: false },
+      orderBy: { createdAt: "desc" },
+    });
 
-  if (!record || record.expiresAt < new Date()) {
-    return NextResponse.json(
-      { error: "PIN inválido ou expirado" },
-      { status: 400 }
-    );
+    if (!record || record.expiresAt < new Date()) {
+      return NextResponse.json(
+        { error: "PIN inválido ou expirado" },
+        { status: 400 }
+      );
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { email },
+      data: { password: hashed },
+    });
+
+    await prisma.passwordReset.update({
+      where: { id: record.id },
+      data: { used: true },
+    });
+
+    return NextResponse.json({ message: "Senha atualizada com sucesso" });
+  } catch (error) {
+    console.error("[POST]", error);
+    return handleApiError(error);
   }
-
-  const hashed = await bcrypt.hash(newPassword, 10);
-
-  await prisma.user.update({
-    where: { email },
-    data: { password: hashed },
-  });
-
-  await prisma.passwordReset.update({
-    where: { id: record.id },
-    data: { used: true },
-  });
-
-  return NextResponse.json({ message: "Senha atualizada com sucesso" });
 }
