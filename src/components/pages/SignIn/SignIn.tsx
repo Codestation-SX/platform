@@ -1,7 +1,9 @@
 // import { useState } from "react";
 import {
+  Backdrop,
   Box,
   Button,
+  CircularProgress,
   FormControl,
   FormLabel,
   Grid,
@@ -31,6 +33,7 @@ type SignInFormData = z.infer<typeof signInSchema>;
 export default function SignIn({ role }: { role?: Role }) {
   const router = useRouter();
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const {
     control,
     handleSubmit,
@@ -46,6 +49,7 @@ export default function SignIn({ role }: { role?: Role }) {
 
   const onSubmit = async (data: SignInFormData) => {
     setLoginError(null);
+    setIsLoading(true);
     try {
       const res = await signIn("credentials", {
         redirect: false,
@@ -56,13 +60,33 @@ export default function SignIn({ role }: { role?: Role }) {
       if (res?.ok) {
         router.push(role === "admin" ? "/backoffice" : "/painel");
       }
+
+      if (res?.error) {
+        setLoginError("Credenciais inválidas. Tente novamente.");
+      }
     } catch (err) {
-      setLoginError("Credenciais inválidas. Tente novamente.");
+      setLoginError(
+        "Erro ao tentar fazer login. Por favor, tente novamente mais tarde."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <StyledContainer direction="column" justifyContent="space-between">
+      <Backdrop
+        open={isLoading}
+        sx={{
+          color: "#fff",
+          zIndex: (t) => t.zIndex.modal + 1,
+          backdropFilter: "blur(2px)",
+          bgcolor: "rgba(0,0,0,0.2)",
+        }}
+        aria-label="Carregando"
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <StyledCard>
         <Typography component="h1" fontWeight={700}>
           CodeStation
