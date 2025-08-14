@@ -13,13 +13,13 @@ export async function POST(req: Request) {
     const { email } = schema.parse(body);
 
     const pin = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
 
     await prisma.passwordReset.create({
       data: { email, pin, expiresAt },
     });
 
-    await sendPasswordResetEmail(email, pin); // você implementa isso com Resend, MailerSend, etc.
+    await sendPasswordResetEmail({ email, pin }); // você implementa isso com Resend, MailerSend, etc.
 
     return NextResponse.json({ message: "Código enviado para o e-mail" });
   } catch (err) {

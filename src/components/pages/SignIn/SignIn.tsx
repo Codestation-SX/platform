@@ -21,6 +21,7 @@ import { Role } from "@/types/user";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import ResetPasswordModal from "./ResetPasswordModal";
 
 const signInSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email"),
@@ -32,6 +33,7 @@ type SignInFormData = z.infer<typeof signInSchema>;
 
 export default function SignIn({ role }: { role?: Role }) {
   const router = useRouter();
+  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const {
@@ -74,116 +76,122 @@ export default function SignIn({ role }: { role?: Role }) {
   };
 
   return (
-    <StyledContainer direction="column" justifyContent="space-between">
-      <Backdrop
-        open={isLoading}
-        sx={{
-          color: "#fff",
-          zIndex: (t) => t.zIndex.modal + 1,
-          backdropFilter: "blur(2px)",
-          bgcolor: "rgba(0,0,0,0.2)",
-        }}
-        aria-label="Carregando"
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
-      <StyledCard>
-        <Typography component="h1" fontWeight={700}>
-          CodeStation
-        </Typography>
-        <Typography
-          component="h1"
-          variant="h4"
-          sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
-        >
-          {role === "student" ? "Área do aluno" : "Backoffice"}
-        </Typography>
-
-        <Box
-          component="form"
-          onSubmit={handleSubmit(onSubmit)}
-          noValidate
+    <>
+      <StyledContainer direction="column" justifyContent="space-between">
+        <Backdrop
+          open={isLoading}
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            width: "100%",
-            gap: 2,
+            color: "#fff",
+            zIndex: (t) => t.zIndex.modal + 1,
+            backdropFilter: "blur(2px)",
+            bgcolor: "rgba(0,0,0,0.2)",
           }}
+          aria-label="Carregando"
         >
-          <FormControl>
-            <FormLabel htmlFor="email">Email</FormLabel>
-            <Controller
-              name="email"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  fullWidth
-                  variant="outlined"
-                  error={!!errors.email}
-                  helperText={errors.email?.message}
-                />
-              )}
-            />
-          </FormControl>
+          <CircularProgress color="inherit" />
+        </Backdrop>
+        <StyledCard>
+          <Typography component="h1" fontWeight={700}>
+            CodeStation
+          </Typography>
+          <Typography
+            component="h1"
+            variant="h4"
+            sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
+          >
+            {role === "student" ? "Área do aluno" : "Backoffice"}
+          </Typography>
 
-          <FormControl>
-            <FormLabel htmlFor="password">Password</FormLabel>
-            <Controller
-              name="password"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  id="password"
-                  type="password"
-                  placeholder="••••••"
-                  fullWidth
-                  variant="outlined"
-                  error={!!errors.password}
-                  helperText={errors.password?.message}
-                />
-              )}
-            />
-          </FormControl>
-          {loginError && (
-            <Typography color="error" variant="body2">
-              {loginError}
-            </Typography>
-          )}
-          <Button type="submit" fullWidth variant="contained">
-            {role === "student" ? "Entrar" : "Acessar Backoffice"}
-          </Button>
+          <Box
+            component="form"
+            onSubmit={handleSubmit(onSubmit)}
+            noValidate
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              gap: 2,
+            }}
+          >
+            <FormControl>
+              <FormLabel htmlFor="email">Email</FormLabel>
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    fullWidth
+                    variant="outlined"
+                    error={!!errors.email}
+                    helperText={errors.email?.message}
+                  />
+                )}
+              />
+            </FormControl>
 
-          <Grid container alignItems={"center"}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Link
-                component={LinkNext}
-                type="button"
-                href={role === "student" ? "/admin/login" : "/login"}
-                variant="body2"
-                sx={{ alignSelf: "center" }}
-              >
-                {role === "student" ? "Sou colaborador" : "Sou aluno"}
-              </Link>
+            <FormControl>
+              <FormLabel htmlFor="password">Password</FormLabel>
+              <Controller
+                name="password"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    id="password"
+                    type="password"
+                    placeholder="••••••"
+                    fullWidth
+                    variant="outlined"
+                    error={!!errors.password}
+                    helperText={errors.password?.message}
+                  />
+                )}
+              />
+            </FormControl>
+            {loginError && (
+              <Typography color="error" variant="body2">
+                {loginError}
+              </Typography>
+            )}
+            <Button type="submit" fullWidth variant="contained">
+              {role === "student" ? "Entrar" : "Acessar Backoffice"}
+            </Button>
+
+            <Grid container alignItems={"center"}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Link
+                  component={LinkNext}
+                  type="button"
+                  href={role === "student" ? "/admin/login" : "/login"}
+                  variant="body2"
+                  sx={{ alignSelf: "center" }}
+                >
+                  {role === "student" ? "Sou colaborador" : "Sou aluno"}
+                </Link>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Link
+                  component="button"
+                  type="button"
+                  onClick={() => setResetPasswordOpen(true)}
+                  variant="body2"
+                  sx={{ alignSelf: "center" }}
+                >
+                  Esqueceu a senha?
+                </Link>
+              </Grid>
             </Grid>
-            {/* <Grid size={{ xs: 12, md: 6 }}>
-              <Link
-                component="button"
-                type="button"
-                onClick={() => console.log(true)}
-                variant="body2"
-                sx={{ alignSelf: "center" }}
-              >
-                Esqueceu a senha?
-              </Link>
-            </Grid> */}
-          </Grid>
-        </Box>
-      </StyledCard>
-    </StyledContainer>
+          </Box>
+        </StyledCard>
+      </StyledContainer>
+      <ResetPasswordModal
+        open={resetPasswordOpen}
+        onClose={() => setResetPasswordOpen(false)}
+      />
+    </>
   );
 }
