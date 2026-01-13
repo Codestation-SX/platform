@@ -16,7 +16,7 @@ export default withAuth(
     if (pathname.startsWith("/backoffice")) {
       // Se não tiver token, redirecione para login
       if (!token) {
-        return NextResponse.redirect(new URL("/backoffice/login", req.url));
+        return NextResponse.redirect(new URL("/admin/login", req.url));
       }
 
       // Se tiver token mas não for admin, redirecione para login
