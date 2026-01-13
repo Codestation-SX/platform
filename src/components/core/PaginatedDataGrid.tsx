@@ -89,10 +89,11 @@ export function PaginatedDataGridInner<T>(
 
   useImperativeHandle(ref, () => ({
     refetch: () => {
-      console.log("aqui");
-      mutate();
+      mutate(); // ✅ revalida a key atual (urlMouted)
     },
   }));
+  
+  
 
   if (error)
     return (

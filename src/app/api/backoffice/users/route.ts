@@ -67,6 +67,9 @@ export async function GET(req: NextRequest) {
         paymentDeferred: true,
         createdAt: true,
         updatedAt: true,
+        classroomId: true,
+        classroom: { select: { id: true, name: true } },
+
       },
       orderBy,
       skip: (page - 1) * limit,
