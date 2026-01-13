@@ -4,12 +4,14 @@ import prisma from "@/lib/prisma";
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   if (!token || token.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { id } = await context.params; // ✅ AQUI
 
   const { classroomId } = await req.json();
 
@@ -24,7 +26,7 @@ export async function PUT(
   }
 
   const unit = await prisma.unit.update({
-    where: { id: params.id },
+    where: { id }, // ✅ AQUI
     data: { classroomId: classroomId ?? null },
     select: { id: true, title: true, classroomId: true },
   });
