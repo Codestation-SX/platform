@@ -20,13 +20,8 @@ export default withAuth(
       }
 
       // Se tiver token mas não for admin, redirecione para login
-      if (pathname !== "/backoffice/login" && token.role !== "admin") {
-        return NextResponse.redirect(new URL("/backoffice/login", req.url));
-      }
-
-      // Se estiver tentando acessar /backoffice/login mas já estiver autenticado
-      if (pathname === "/backoffice/login" && token && token.role === "admin") {
-        return NextResponse.redirect(new URL("/backoffice", req.url));
+      if (token.role !== "admin") {
+        return NextResponse.redirect(new URL("/admin/login", req.url));
       }
     }
     if (pathname.startsWith("/painel")) {
@@ -60,8 +55,7 @@ export default withAuth(
           secret: process.env.NEXTAUTH_SECRET,
         });
 
-        // Se a rota for /backoffice/login, permita o acesso mesmo sem token
-        if (req.nextUrl.pathname === "/backoffice/login") {
+        if (req.nextUrl.pathname === "/admin/login") {
           return true;
         }
 
@@ -76,7 +70,7 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/backoffice/:path*", "/login", "/painel/:path*"],
+  matcher: ["/backoffice/:path*", "/admin/login", "/login", "/painel/:path*"],
   unstable_allowDynamic: [
     "/node_modules/@babel/runtime/regenerator/index.js",
     "/node_modules/next-auth/core/errors.js",

@@ -65,6 +65,8 @@ export async function GET(req: NextRequest) {
         educationLevel: true,
         role: true,
         paymentDeferred: true,
+        ativo: true,
+        turmaId: true,
         createdAt: true,
         updatedAt: true,
       },

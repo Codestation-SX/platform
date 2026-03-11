@@ -38,7 +38,7 @@ export default function Layout(props: { children: React.ReactNode }) {
 
   const authentication = {
     signIn,
-    signOut: () => signOut({ callbackUrl: "/backoffice/login" }),
+    signOut: () => signOut({ callbackUrl: "/admin/login" }),
   };
   return (
     <AppProvider
