@@ -260,6 +260,14 @@ function PerguntaCard({
   );
 }
 
+function localDateTimeToUTC(localStr: string): string {
+  if (!localStr) return localStr;
+  const [datePart, timePart] = localStr.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hours, minutes] = timePart.split(":").map(Number);
+  return new Date(year, month - 1, day, hours, minutes).toISOString();
+}
+
 function toInputDateTime(value?: string) {
   if (!value) return "";
   const date = new Date(value);
@@ -356,8 +364,8 @@ export default function ProvaForm({
         },
         body: JSON.stringify({
           ...data,
-          dataInicioDisponibilidade: new Date(data.dataInicioDisponibilidade).toISOString(),
-          dataFimDisponibilidade: new Date(data.dataFimDisponibilidade).toISOString(),
+          dataInicioDisponibilidade: localDateTimeToUTC(data.dataInicioDisponibilidade),
+          dataFimDisponibilidade: localDateTimeToUTC(data.dataFimDisponibilidade),
           percentualMinimoAprovacao: Number(data.percentualMinimoAprovacao),
           tempoDuracaoMinutos: Number(data.tempoDuracaoMinutos),
           perguntas: perguntasTratadas.map((pergunta) => ({
