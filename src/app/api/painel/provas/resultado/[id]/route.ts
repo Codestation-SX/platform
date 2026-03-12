@@ -56,8 +56,8 @@ export async function GET(req: Request, { params }: Params) {
 
   const notaTotal = perguntas.reduce((acc, p) => acc + p.valorNota, 0);
   const percentualAcerto =
-    totalPerguntas > 0
-      ? Math.round((totalAcertos / totalPerguntas) * 100)
+    notaTotal > 0
+      ? Math.round((notaObtida / notaTotal) * 100)
       : 0;
 
   // ✅ usa o critério real da prova, não um valor fixo
