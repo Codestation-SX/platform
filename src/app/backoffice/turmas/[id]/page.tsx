@@ -12,8 +12,14 @@ import {
   Chip,
   CircularProgress,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   IconButton,
+  InputAdornment,
   List,
   ListItem,
   ListItemAvatar,
@@ -21,11 +27,13 @@ import {
   Stack,
   Tab,
   Tabs,
+  TextField,
   Typography,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PersonRemoveIcon from "@mui/icons-material/PersonRemove";
+import SearchIcon from "@mui/icons-material/Search";
 
 type Aluno = {
   id: string;
@@ -34,6 +42,8 @@ type Aluno = {
   email: string;
   ativo: boolean;
   createdAt: string;
+  turmaId?: string | null;
+  turma?: { id: string; nome: string } | null;
 };
 
 type Turma = {
@@ -47,37 +57,52 @@ type Turma = {
   _count: { lessons: number };
 };
 
+type Conflito = {
+  userId: string;
+  nomeAluno: string;
+  turmaNome: string;
+  message: string;
+};
+
 export default function GerenciarTurmaPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
   const [turma, setTurma] = useState<Turma | null>(null);
   const [pendentes, setPendentes] = useState<Aluno[]>([]);
+  const [todosAlunos, setTodosAlunos] = useState<Aluno[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
   const [aba, setAba] = useState(0);
   const [processando, setProcessando] = useState<string | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [busca, setBusca] = useState("");
+
+  // Dialog de confirmação de transferência
+  const [conflito, setConflito] = useState<Conflito | null>(null);
 
   const carregar = useCallback(async () => {
     try {
       setLoading(true);
       setErro("");
 
-      const [resTurma, resPendentes] = await Promise.all([
+      const [resTurma, resPendentes, resTodos] = await Promise.all([
         fetch(`/api/backoffice/turmas/${id}`, { cache: "no-store" }),
         fetch("/api/backoffice/turmas/pendentes", { cache: "no-store" }),
+        fetch("/api/backoffice/turmas/pendentes?todos=true", { cache: "no-store" }),
       ]);
 
-      const [dataTurma, dataPendentes] = await Promise.all([
+      const [dataTurma, dataPendentes, dataTodos] = await Promise.all([
         resTurma.json(),
         resPendentes.json(),
+        resTodos.json(),
       ]);
 
       if (!resTurma.ok) throw new Error(dataTurma.error || "Erro ao carregar turma");
       setTurma(dataTurma);
       setPendentes(dataPendentes);
+      setTodosAlunos(dataTodos);
     } catch (e: any) {
       setErro(e.message);
     } finally {
@@ -87,7 +112,7 @@ export default function GerenciarTurmaPage() {
 
   useEffect(() => { carregar(); }, [carregar]);
 
-  const vincularAluno = async (userId: string) => {
+  const vincularAluno = async (userId: string, force = false) => {
     setProcessando(userId);
     setSucesso("");
     setErro("");
@@ -95,9 +120,21 @@ export default function GerenciarTurmaPage() {
       const res = await fetch(`/api/backoffice/turmas/${id}/alunos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId, force }),
       });
       const data = await res.json();
+
+      if (res.status === 409 && data.conflito) {
+        const aluno = todosAlunos.find((a) => a.id === userId);
+        setConflito({
+          userId,
+          nomeAluno: aluno ? `${aluno.firstName} ${aluno.lastName}` : "Aluno",
+          turmaNome: data.turmaNome,
+          message: data.message,
+        });
+        return;
+      }
+
       if (!res.ok) throw new Error(data.error || "Erro ao vincular aluno");
       setSucesso("Aluno adicionado à turma com sucesso!");
       await carregar();
@@ -106,6 +143,12 @@ export default function GerenciarTurmaPage() {
     } finally {
       setProcessando(null);
     }
+  };
+
+  const confirmarTransferencia = async () => {
+    if (!conflito) return;
+    setConflito(null);
+    await vincularAluno(conflito.userId, true);
   };
 
   const removerAluno = async (userId: string) => {
@@ -161,12 +204,42 @@ export default function GerenciarTurmaPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao encerrar turma");
-      setSucesso("Turma encerrada.");
+      setSucesso("Turma encerrada. Os alunos não têm mais acesso às aulas.");
       await carregar();
     } catch (e: any) {
       setErro(e.message);
     }
   };
+
+  const reiniciarTurma = async () => {
+    if (!confirm("Deseja reativar esta turma? Os alunos voltarão a ter acesso às aulas.")) return;
+    try {
+      const res = await fetch(`/api/backoffice/turmas/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "ATIVA" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao reativar turma");
+      setSucesso("Turma reativada! Os alunos têm acesso às aulas novamente.");
+      await carregar();
+    } catch (e: any) {
+      setErro(e.message);
+    }
+  };
+
+  // Alunos filtrados pela busca (excluindo quem já está na turma)
+  const alunosParaAdicionar = todosAlunos
+    .filter((a) => a.turmaId !== id)
+    .filter((a) => {
+      if (!busca.trim()) return true;
+      const termo = busca.toLowerCase();
+      return (
+        a.firstName.toLowerCase().includes(termo) ||
+        a.lastName.toLowerCase().includes(termo) ||
+        a.email.toLowerCase().includes(termo)
+      );
+    });
 
   if (loading) {
     return (
@@ -204,9 +277,13 @@ export default function GerenciarTurmaPage() {
               <Typography color="text.secondary">{turma.descricao}</Typography>
             )}
           </Box>
-          {turma.status === "ATIVA" && (
+          {turma.status === "ATIVA" ? (
             <Button variant="outlined" color="error" onClick={encerrarTurma}>
               Encerrar turma
+            </Button>
+          ) : (
+            <Button variant="outlined" color="success" onClick={reiniciarTurma}>
+              Reiniciar turma
             </Button>
           )}
         </Stack>
@@ -253,10 +330,11 @@ export default function GerenciarTurmaPage() {
             <Tab
               label={
                 pendentes.length > 0
-                  ? `Pendentes — sem turma (${pendentes.length})`
-                  : "Pendentes — sem turma"
+                  ? `Sem turma (${pendentes.length})`
+                  : "Sem turma"
               }
             />
+            <Tab label="Adicionar aluno" />
           </Tabs>
           <Divider />
 
@@ -267,7 +345,7 @@ export default function GerenciarTurmaPage() {
                 <Card>
                   <CardContent>
                     <Typography color="text.secondary">
-                      Nenhum aluno nesta turma ainda. Use a aba <strong>Pendentes</strong> para adicionar alunos.
+                      Nenhum aluno nesta turma ainda. Use a aba <strong>Adicionar aluno</strong> para adicionar.
                     </Typography>
                   </CardContent>
                 </Card>
@@ -327,7 +405,7 @@ export default function GerenciarTurmaPage() {
             </Box>
           )}
 
-          {/* Aba 1: alunos pendentes */}
+          {/* Aba 1: alunos sem turma */}
           {aba === 1 && (
             <Box mt={2}>
               {pendentes.length === 0 ? (
@@ -395,8 +473,113 @@ export default function GerenciarTurmaPage() {
               )}
             </Box>
           )}
+
+          {/* Aba 2: adicionar qualquer aluno */}
+          {aba === 2 && (
+            <Box mt={2}>
+              <Stack spacing={2}>
+                <TextField
+                  placeholder="Buscar por nome ou e-mail..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  size="small"
+                  fullWidth
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+
+                {alunosParaAdicionar.length === 0 ? (
+                  <Card>
+                    <CardContent>
+                      <Typography color="text.secondary">
+                        {busca.trim()
+                          ? "Nenhum aluno encontrado para esta busca."
+                          : "Todos os alunos já estão nesta turma."}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <List disablePadding>
+                      {alunosParaAdicionar.map((aluno, index) => (
+                        <Box key={aluno.id}>
+                          <ListItem
+                            secondaryAction={
+                              turma.status === "ATIVA" ? (
+                                <Button
+                                  variant="contained"
+                                  size="small"
+                                  startIcon={
+                                    processando === aluno.id ? (
+                                      <CircularProgress size={16} color="inherit" />
+                                    ) : (
+                                      <PersonAddIcon />
+                                    )
+                                  }
+                                  disabled={processando === aluno.id}
+                                  onClick={() => vincularAluno(aluno.id)}
+                                >
+                                  Adicionar
+                                </Button>
+                              ) : null
+                            }
+                          >
+                            <ListItemAvatar>
+                              <Avatar>{aluno.firstName[0]}</Avatar>
+                            </ListItemAvatar>
+                            <ListItemText
+                              primary={`${aluno.firstName} ${aluno.lastName}`}
+                              secondary={
+                                <>
+                                  {aluno.email}
+                                  {aluno.turma && (
+                                    <Typography
+                                      component="span"
+                                      variant="caption"
+                                      color="warning.main"
+                                      sx={{ display: "block" }}
+                                    >
+                                      Turma atual: {aluno.turma.nome}
+                                    </Typography>
+                                  )}
+                                </>
+                              }
+                            />
+                          </ListItem>
+                          {index < alunosParaAdicionar.length - 1 && <Divider component="li" />}
+                        </Box>
+                      ))}
+                    </List>
+                  </Card>
+                )}
+              </Stack>
+            </Box>
+          )}
         </Box>
       </Stack>
+
+      {/* Dialog de confirmação de transferência */}
+      <Dialog open={!!conflito} onClose={() => setConflito(null)} maxWidth="sm" fullWidth>
+        <DialogTitle>Transferir aluno de turma</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {conflito?.message}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConflito(null)}>Cancelar</Button>
+          <Button onClick={confirmarTransferencia} variant="contained" color="warning">
+            Transferir mesmo assim
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

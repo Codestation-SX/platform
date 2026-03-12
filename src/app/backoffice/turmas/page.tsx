@@ -125,6 +125,23 @@ export default function TurmasPage() {
     }
   };
 
+  const reiniciarTurma = async (id: string) => {
+    if (!confirm("Deseja reativar esta turma? Os alunos voltarão a ter acesso às aulas.")) return;
+    try {
+      const res = await fetch(`/api/backoffice/turmas/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "ATIVA" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao reativar turma");
+      setSucesso("Turma reativada com sucesso!");
+      await carregar();
+    } catch (e: any) {
+      setErro(e.message);
+    }
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -215,13 +232,21 @@ export default function TurmasPage() {
                         >
                           Gerenciar
                         </Button>
-                        {turma.status === "ATIVA" && (
+                        {turma.status === "ATIVA" ? (
                           <Button
                             variant="outlined"
                             color="error"
                             onClick={() => encerrarTurma(turma.id)}
                           >
                             Encerrar turma
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outlined"
+                            color="success"
+                            onClick={() => reiniciarTurma(turma.id)}
+                          >
+                            Reiniciar turma
                           </Button>
                         )}
                       </Stack>

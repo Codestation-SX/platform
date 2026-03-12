@@ -35,11 +35,11 @@ export async function GET(req: NextRequest) {
     // Busca o aluno com turma e status ativo
     const aluno = await prisma.user.findUnique({
       where: { id: token.id as string },
-      select: { turmaId: true, ativo: true },
+      select: { turmaId: true, ativo: true, turma: { select: { status: true } } },
     });
 
-    // Aluno sem turma ou inativo não vê nenhuma aula
-    if (!aluno?.turmaId || aluno.ativo === false) {
+    // Aluno sem turma, inativo ou com turma encerrada não vê nenhuma aula
+    if (!aluno?.turmaId || aluno.ativo === false || aluno.turma?.status !== "ATIVA") {
       return NextResponse.json([]);
     }
 

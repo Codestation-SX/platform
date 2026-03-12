@@ -17,7 +17,7 @@ export async function GET(
   const { id } = await context.params;
 
   const turma = await prisma.turma.findFirst({
-    where: { id, deletedAt: null },
+    where: { id },
     include: {
       alunos: {
         where: { deletedAt: null, role: "student" },
@@ -60,7 +60,10 @@ export async function PUT(
       data: {
         ...(nome !== undefined && { nome: nome.trim() }),
         ...(descricao !== undefined && { descricao: descricao?.trim() || null }),
-        ...(status !== undefined && { status }),
+        ...(status !== undefined && {
+          status,
+          ...(status === "ATIVA" && { deletedAt: null }),
+        }),
         ...(dataInicio !== undefined && { dataInicio: new Date(dataInicio) }),
         ...(dataFim !== undefined && {
           dataFim: dataFim ? new Date(dataFim) : null,

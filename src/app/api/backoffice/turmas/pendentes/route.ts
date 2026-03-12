@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 
-// Retorna alunos que ainda não foram atribuídos a nenhuma turma
+// Retorna alunos sem turma (padrão) ou todos os alunos (?todos=true)
 export async function GET(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
@@ -10,20 +10,25 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
+  const url = new URL(req.url);
+  const todos = url.searchParams.get("todos") === "true";
+
   const alunos = await prisma.user.findMany({
     where: {
       role: "student",
       deletedAt: null,
-      turmaId: null,
+      ...(todos ? {} : { turmaId: null }),
     },
     select: {
       id: true,
       firstName: true,
       lastName: true,
       email: true,
+      turmaId: true,
+      turma: { select: { id: true, nome: true } },
       createdAt: true,
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { firstName: "asc" },
   });
 
   return NextResponse.json(alunos);
