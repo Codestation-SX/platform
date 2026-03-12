@@ -356,6 +356,8 @@ export default function ProvaForm({
         },
         body: JSON.stringify({
           ...data,
+          dataInicioDisponibilidade: new Date(data.dataInicioDisponibilidade).toISOString(),
+          dataFimDisponibilidade: new Date(data.dataFimDisponibilidade).toISOString(),
           percentualMinimoAprovacao: Number(data.percentualMinimoAprovacao),
           tempoDuracaoMinutos: Number(data.tempoDuracaoMinutos),
           perguntas: perguntasTratadas.map((pergunta) => ({
