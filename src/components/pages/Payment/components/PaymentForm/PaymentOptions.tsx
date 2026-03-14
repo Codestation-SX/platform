@@ -9,7 +9,6 @@ import {
   Typography,
 } from "@mui/material";
 import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
-import AccountBalanceRoundedIcon from "@mui/icons-material/AccountBalanceRounded";
 import SimCardRoundedIcon from "@mui/icons-material/SimCardRounded";
 import { styled } from "@mui/material/styles";
 import { PaymentFormValues } from "./paymentSchema";
@@ -51,19 +50,6 @@ export function PaymentOptions({
                 >
                   <CreditCardRoundedIcon />
                   <Typography>Crédito</Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-            <Card
-              selected={field.value === "BOLETO"}
-              onClick={() => field.onChange("BOLETO")}
-            >
-              <CardActionArea>
-                <CardContent
-                  sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                >
-                  <AccountBalanceRoundedIcon />
-                  <Typography>Boleto</Typography>
                 </CardContent>
               </CardActionArea>
             </Card>

@@ -1,5 +1,5 @@
 "use client";
-import { Button, Container, Stack } from "@mui/material";
+import { Button, CircularProgress, Container, Stack, Typography } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { paymentSchema, PaymentFormValues } from "./paymentSchema";
@@ -9,7 +9,6 @@ import { PaymentAlerts } from "./PaymentAlerts";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import PaymentSuccessModal from "./PaymentSuccessModal";
-import BoletoFields from "./BoletoFields";
 import PixFields from "./PixFields";
 import { api } from "@/lib/api";
 
@@ -17,8 +16,8 @@ export default function PaymentForm() {
   const { data: session } = useSession();
   const [paymentData, setPaymentData] = useState<any | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-
-  console.log(session);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const {
     control,
     handleSubmit,
@@ -39,17 +38,19 @@ export default function PaymentForm() {
   const paymentType = watch("paymentType");
 
   const onSubmit = async (formData: PaymentFormValues) => {
-    const userId = session?.user.id; // ou pegue do contexto/autenticação
-    const customerId = session?.user.asaasCustomerId; // ou do banco
+    const userId = session?.user.id;
+    const customerId = session?.user.asaasCustomerId;
 
-    if (!userId || !customerId) {
-      console.error("Usuário não autenticado ou cliente Asaas não encontrado.");
+    setSubmitError(null);
+
+    if (!userId) {
+      setSubmitError("Usuário não autenticado.");
       return;
     }
 
     const payload: any = {
       userId,
-      customerId,
+      ...(customerId && { customerId }),
       value: 1200,
       dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 dias
       billingType:
@@ -78,6 +79,7 @@ export default function PaymentForm() {
       };
     }
 
+    setSubmitting(true);
     try {
       const res = await fetch("/api/public/payments", {
         method: "POST",
@@ -89,15 +91,15 @@ export default function PaymentForm() {
 
       if (!res.ok) throw new Error(result.error || "Erro ao gerar pagamento");
 
-      console.log("Pagamento criado:", result.data);
-
       setPaymentData({
         billingType: payload.billingType,
         ...result.data,
       });
       setModalOpen(true);
-    } catch (err) {
-      console.error("Erro ao criar pagamento:", err);
+    } catch (err: any) {
+      setSubmitError(err.message || "Erro ao processar pagamento. Tente novamente.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -110,8 +112,21 @@ export default function PaymentForm() {
             {paymentType === "CREDIT_CARD" && (
               <CreditCardFields control={control} errors={errors} />
             )}
-            {paymentType === "BOLETO" && <BoletoFields />}
             {paymentType === "PIX" && <PixFields />}
+            {submitError && (
+              <Typography color="error" variant="body2">
+                {submitError}
+              </Typography>
+            )}
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={submitting}
+              startIcon={submitting ? <CircularProgress size={18} color="inherit" /> : null}
+            >
+              {submitting ? "Processando..." : "Confirmar pagamento"}
+            </Button>
           </Stack>
         </form>
       </Container>

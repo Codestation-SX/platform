@@ -29,6 +29,7 @@ model Turma {
   dataFim    DateTime?
   alunos     User[]
   lessons    Lesson[]
+  units      Unit[]
   provas     Prova[]
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
@@ -57,7 +58,8 @@ model User {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   deletedAt       DateTime?
-  provaTentativas ProvaTentativa[]
+  provaTentativas  ProvaTentativa[]
+  provasAtribuidas Prova[]          @relation("ProvaAlunosAtribuidos")
 }
 
 model Address {
@@ -119,6 +121,8 @@ model Unit {
   order       Int
   slug        String?   @unique
   lessons     Lesson[]
+  turmaId     String?
+  turma       Turma?    @relation(fields: [turmaId], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
@@ -186,6 +190,7 @@ model Prova {
   status                    ProvaStatus      @default(RASCUNHO)
   perguntas                 ProvaPergunta[]
   tentativas                ProvaTentativa[]
+  alunosAtribuidos          User[]           @relation("ProvaAlunosAtribuidos")
   createdAt                 DateTime         @default(now())
   updatedAt                 DateTime         @updatedAt
   deletedAt                 DateTime?

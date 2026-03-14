@@ -41,6 +41,13 @@ export default function UnitsBackofficePage() {
           { field: "title", headerName: "Título", flex: 1 },
           { field: "description", headerName: "Descrição", flex: 1 },
           {
+            field: "turma",
+            headerName: "Turma",
+            flex: 1,
+            sortable: false,
+            valueGetter: (value: any) => value?.nome ?? "—",
+          },
+          {
             field: "actions",
             headerName: "Ações",
             width: 180,

@@ -10,6 +10,7 @@ import QuizIcon from "@mui/icons-material/Quiz";
 import GradeIcon from "@mui/icons-material/Grade";
 import GroupsIcon from "@mui/icons-material/Groups";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 
 export const NAVIGATION_BACKOFFICE: Navigation = [
   {
@@ -56,6 +57,11 @@ export const NAVIGATION_BACKOFFICE: Navigation = [
     segment: "backoffice/payments",
     title: "Pagamentos",
     icon: <PaymentIcon />,
+  },
+  {
+    segment: "backoffice/matriculas-pendentes",
+    title: "Matrículas Pendentes",
+    icon: <HourglassEmptyIcon />,
   },
   { kind: "divider" },
   {

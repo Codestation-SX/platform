@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const paymentSchema = z
   .object({
-    paymentType: z.enum(["CREDIT_CARD", "BOLETO", "PIX"]),
+    paymentType: z.enum(["CREDIT_CARD", "PIX"]),
     cardNumber: z
       .string()
       .min(19, "Número do cartão deve conter 16 dígitos")

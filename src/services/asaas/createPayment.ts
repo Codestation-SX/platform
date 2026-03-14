@@ -53,8 +53,10 @@ export async function createPayment(input: CreatePaymentInput) {
   }
 
   // 2. Chama a API do Asaas
+  console.log("[Asaas] POST /payments payload:", JSON.stringify(basePayload));
   const res = await apiAsaas.post("/payments", basePayload);
   const paymentData = res.data;
+  console.log("[Asaas] POST /payments response:", JSON.stringify(paymentData));
 
   if (!paymentData.id) {
     throw new Error("Erro ao criar cobrança no Asaas");
@@ -71,13 +73,26 @@ export async function createPayment(input: CreatePaymentInput) {
     },
   });
   console.log(payment);
-  // 4. Retorna dados úteis
+  // 4. Para PIX, busca QR code e chave copia-e-cola
+  let pixQrCode: string | undefined;
+  let pixKey: string | undefined;
+  let pixExpirationDate: string | undefined;
+
+  if (billingType === "PIX") {
+    const pixRes = await apiAsaas.get(`/payments/${paymentData.id}/pixQrCode`);
+    pixQrCode = pixRes.data.encodedImage;
+    pixKey = pixRes.data.payload;
+    pixExpirationDate = pixRes.data.expirationDate;
+  }
+
+  // 5. Retorna dados úteis
   return {
     asaasId: paymentData.id,
     invoiceUrl: paymentData.invoiceUrl,
     bankSlipUrl: paymentData.bankSlipUrl,
-    pixQrCode: paymentData.pixQrCode,
-    pixExpirationDate: paymentData.expirationDate,
+    pixQrCode,
+    pixKey,
+    pixExpirationDate,
     paymentLink: paymentData.invoiceUrl,
   };
 }

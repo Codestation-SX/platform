@@ -11,6 +11,7 @@ import {
   FormLabel,
   TextField,
   Typography,
+  MenuItem,
 } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
@@ -24,9 +25,12 @@ import { useToast } from "@/components/hooks/useToast";
 const unitSchema = z.object({
   title: z.string().min(1, "O título é obrigatório"),
   description: z.string().min(1, "A descrição é obrigatória"),
+  turmaId: z.string().optional().nullable(),
 });
 
 type UnitFormData = z.infer<typeof unitSchema>;
+
+const fetcher = (url: string) => api.get(url).then((r) => r.data);
 
 export default function UnitModal({
   id,
@@ -41,16 +45,18 @@ export default function UnitModal({
 }) {
   const { success } = useToast();
   const isEdit = !!id;
+
   const { data: unitData } = useSWR(
     isEdit ? `/api/backoffice/units/${id}` : null,
-    async (url: string) => {
-      const res = await api.get(url);
-      return res.data;
-    }
+    fetcher
   );
+
+  const { data: turmasData } = useSWR("/api/backoffice/turmas", fetcher);
+  const turmas: { id: string; nome: string }[] = turmasData ?? [];
+
   const [apiError, setApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [loadingRequest, setLoadingRequest] = useState(false);
+
   const {
     control,
     handleSubmit,
@@ -58,7 +64,7 @@ export default function UnitModal({
     formState: { errors },
   } = useForm<UnitFormData>({
     resolver: zodResolver(unitSchema),
-    defaultValues: { title: "", description: "" },
+    defaultValues: { title: "", description: "", turmaId: "" },
   });
 
   useEffect(() => {
@@ -66,20 +72,25 @@ export default function UnitModal({
       reset({
         title: unitData.title,
         description: unitData.description,
+        turmaId: unitData.turmaId ?? "",
       });
     } else {
-      reset({ title: "", description: "" });
+      reset({ title: "", description: "", turmaId: "" });
     }
   }, [reset, unitData]);
 
   const onSubmit = async (data: UnitFormData) => {
     setLoading(true);
-    setApiError(null); // limpa erro anterior
+    setApiError(null);
     try {
       await api.request({
         url: "/api/backoffice/units",
         method: id ? "PUT" : "POST",
-        data: { id, ...data },
+        data: {
+          id,
+          ...data,
+          turmaId: data.turmaId || null,
+        },
       });
       success(`Módulo ${isEdit ? "editado" : "criado"} com sucesso!`);
       onSaved();
@@ -95,7 +106,7 @@ export default function UnitModal({
       <DialogTitle>{id ? "Editar Módulo" : "Novo Módulo"}</DialogTitle>
       <DialogContent>
         {apiError && (
-          <Typography color="error" variant="body2">
+          <Typography color="error" variant="body2" mb={1}>
             {apiError}
           </Typography>
         )}
@@ -115,7 +126,7 @@ export default function UnitModal({
                   fullWidth
                   error={!!errors.title}
                   helperText={errors.title?.message}
-                  disabled={loadingRequest}
+                  disabled={loading}
                 />
               )}
             />
@@ -132,8 +143,33 @@ export default function UnitModal({
                   fullWidth
                   error={!!errors.description}
                   helperText={errors.description?.message}
-                  disabled={loadingRequest}
+                  disabled={loading}
                 />
+              )}
+            />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>Turma</FormLabel>
+            <Controller
+              name="turmaId"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  select
+                  fullWidth
+                  value={field.value ?? ""}
+                  disabled={loading}
+                  helperText="Opcional — vincule este módulo a uma turma"
+                >
+                  <MenuItem value="">Nenhuma turma</MenuItem>
+                  {turmas.map((t) => (
+                    <MenuItem key={t.id} value={t.id}>
+                      {t.nome}
+                    </MenuItem>
+                  ))}
+                </TextField>
               )}
             />
           </FormControl>

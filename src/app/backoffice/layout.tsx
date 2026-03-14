@@ -6,11 +6,16 @@ import { NAVIGATION_BACKOFFICE } from "@/core/navigation";
 import { backofficeTheme } from "@/theme/backofficeTheme";
 import { Stack } from "@mui/material";
 import SidebarFooterAccount from "@/components/core/SidebarFooterAccount";
+import NotificationBell from "@/components/core/NotificationBell";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 function CustomToolbarActions() {
-  return <Stack direction="row" alignItems="center" />;
+  return (
+    <Stack direction="row" alignItems="center">
+      <NotificationBell />
+    </Stack>
+  );
 }
 
 export default function Layout(props: { children: React.ReactNode }) {
