@@ -284,7 +284,7 @@ export default function CourseGridModal({ open, onClose }: CourseGridModalProps)
               ))}
             </Box>
             <Typography variant="caption" sx={{ color: "#718096", display: "block", mt: 2, fontFamily: "var(--font-jetbrains, monospace)" }}>
-              // mais de 40 horas de conteúdo prático com ferramentas usadas no mercado de QA
+              {"// mais de 40 horas de conteúdo prático com ferramentas usadas no mercado de QA"}
             </Typography>
           </Box>
 

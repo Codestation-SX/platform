@@ -187,7 +187,7 @@ export default function Dashboard() {
             </Box>
           </Typography>
           <Typography variant="caption" sx={{ color: C.muted, letterSpacing: "0.5px" }}>
-            // visão geral do sistema · atualizado agora
+            {"// visão geral do sistema · atualizado agora"}
           </Typography>
         </Box>
         <Stack direction="row" gap={1} flexShrink={0}>
