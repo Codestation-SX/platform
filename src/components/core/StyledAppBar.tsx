@@ -41,9 +41,10 @@ export default function AppAppBar() {
       enableColorOnDark
       sx={{
         boxShadow: 0,
-        bgcolor: "transparent",
+        bgcolor: "rgb(5, 8, 16)",
         backgroundImage: "none",
-        mt: "calc(var(--template-frame-height, 0px) + 28px)",
+        pt: "calc(var(--template-frame-height, 0px) + 28px)",
+        zIndex: (t) => t.zIndex.appBar + 100,
       }}
     >
       <Container maxWidth="lg">
