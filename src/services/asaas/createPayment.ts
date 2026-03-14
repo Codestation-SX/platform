@@ -23,7 +23,7 @@ interface CreatePaymentInput {
     cpfCnpj: string;
     postalCode: string;
     addressNumber: string;
-    phone: string;
+    phone?: string;
   };
 }
 
