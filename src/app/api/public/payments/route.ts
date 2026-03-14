@@ -75,6 +75,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    if (!customerId) {
+      return NextResponse.json({ error: "Customer ID não encontrado" }, { status: 400 });
+    }
+
     const result = await createPayment({ ...input, customerId });
 
     return NextResponse.json(
