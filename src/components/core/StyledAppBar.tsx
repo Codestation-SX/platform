@@ -1,5 +1,5 @@
 import * as React from "react";
-import { styled, alpha } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
@@ -10,28 +10,26 @@ import MenuItem from "@mui/material/MenuItem";
 import Drawer from "@mui/material/Drawer";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import ColorModeIconDropdown from "@/theme/ColorModeIconDropdown";
 import Typography from "@mui/material/Typography";
 import Link from "next/link";
+import CourseGridModal from "./CourseGridModal";
 
-const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+const StyledToolbar = styled(Toolbar)(() => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
   flexShrink: 0,
-  borderRadius: `calc(${theme.shape.borderRadius}px + 8px)`,
+  borderRadius: 12,
   backdropFilter: "blur(24px)",
-  border: "1px solid",
-  borderColor: (theme.vars || theme).palette.divider,
-  backgroundColor: theme.vars
-    ? `rgba(${theme.vars.palette.background.defaultChannel} / 0.4)`
-    : alpha(theme.palette.background.default, 0.4),
-  boxShadow: (theme.vars || theme).shadows[1],
+  border: "1px solid rgba(99,179,237,0.15)",
+  backgroundColor: "rgba(5,8,16,0.75)",
+  boxShadow: "0 4px 24px rgba(5,8,16,0.6)",
   padding: "8px 12px",
 }));
 
 export default function AppAppBar() {
   const [open, setOpen] = React.useState(false);
+  const [courseOpen, setCourseOpen] = React.useState(false);
 
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
@@ -53,8 +51,17 @@ export default function AppAppBar() {
           <Box
             sx={{ flexGrow: 1, display: "flex", alignItems: "center", px: 0 }}
           >
-            <Typography color="primary" fontWeight={700}>
-              CodeStation
+            <Typography
+              fontWeight={800}
+              sx={{
+                fontFamily: "var(--font-syne, sans-serif)",
+                fontSize: "0.9rem",
+                letterSpacing: "1px",
+                color: "#63b3ed",
+                mr: 1,
+              }}
+            >
+              CODE<span style={{ color: "#e2e8f0" }}>STATION</span>
             </Typography>
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <Button
@@ -65,6 +72,14 @@ export default function AppAppBar() {
                 href="/quem-somos"
               >
                 Quem somos
+              </Button>
+              <Button
+                variant="text"
+                color="info"
+                size="small"
+                onClick={() => setCourseOpen(true)}
+              >
+                Grade do curso
               </Button>
             </Box>
           </Box>
@@ -93,19 +108,8 @@ export default function AppAppBar() {
             >
               Matricule-se
             </Button>
-            <ColorModeIconDropdown />
           </Box>
           <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>
-            <Button
-              LinkComponent={Link}
-              variant="text"
-              color="info"
-              size="small"
-              href="/quem-somos"
-            >
-              Quem somos
-            </Button>
-            <ColorModeIconDropdown size="medium" />
             <IconButton aria-label="Menu button" onClick={toggleDrawer(true)}>
               <MenuIcon />
             </IconButton>
@@ -120,17 +124,22 @@ export default function AppAppBar() {
               }}
             >
               <Box sx={{ p: 2, backgroundColor: "background.default" }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                  }}
-                >
+                <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                   <IconButton onClick={toggleDrawer(false)}>
                     <CloseRoundedIcon />
                   </IconButton>
                 </Box>
-                <MenuItem sx={{ mt: 3 }}>
+                <MenuItem>
+                  <Button
+                    color="info"
+                    variant="text"
+                    fullWidth
+                    onClick={() => { setOpen(false); setCourseOpen(true); }}
+                  >
+                    Grade do curso
+                  </Button>
+                </MenuItem>
+                <MenuItem sx={{ mt: 1 }}>
                   <Button
                     color="primary"
                     variant="contained"
@@ -157,6 +166,7 @@ export default function AppAppBar() {
           </Box>
         </StyledToolbar>
       </Container>
+      <CourseGridModal open={courseOpen} onClose={() => setCourseOpen(false)} />
     </AppBar>
   );
 }

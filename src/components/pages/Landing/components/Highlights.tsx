@@ -58,8 +58,7 @@ export default function Highlights() {
       sx={{
         pt: { xs: 4, sm: 12 },
         pb: { xs: 8, sm: 16 },
-        color: "white",
-        bgcolor: "grey.900",
+        backgroundColor: "#080c18",
       }}
     >
       <Container
@@ -77,10 +76,10 @@ export default function Highlights() {
             textAlign: { sm: "left", md: "center" },
           }}
         >
-          <Typography component="h2" variant="h4" gutterBottom>
+          <Typography component="h2" variant="h4" gutterBottom sx={{ color: "text.primary" }}>
             Por que escolher a CodeStation
           </Typography>
-          <Typography variant="body1" sx={{ color: "grey.400" }}>
+          <Typography variant="body1" sx={{ color: "text.secondary" }}>
             Descubra o que torna nossa plataforma única: aprendizado adaptável,
             conteúdo atualizado, suporte dedicado e uma experiência completa
             para quem quer dominar QA de verdade.
@@ -95,19 +94,17 @@ export default function Highlights() {
                 spacing={1}
                 useFlexGap
                 sx={{
-                  color: "inherit",
+                  color: "text.primary",
                   p: 3,
                   height: "100%",
-                  borderColor: "hsla(220, 25%, 25%, 0.3)",
-                  backgroundColor: "grey.800",
                 }}
               >
-                <Box sx={{ opacity: "50%" }}>{item.icon}</Box>
+                <Box sx={{ color: "primary.main", opacity: 0.8 }}>{item.icon}</Box>
                 <div>
-                  <Typography gutterBottom sx={{ fontWeight: "medium" }}>
+                  <Typography gutterBottom sx={{ fontWeight: 600, color: "text.primary" }}>
                     {item.title}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "grey.400" }}>
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
                     {item.description}
                   </Typography>
                 </div>

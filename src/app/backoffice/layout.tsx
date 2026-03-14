@@ -3,19 +3,14 @@ import * as React from "react";
 import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { AppProvider } from "@toolpad/core/AppProvider";
 import { NAVIGATION_BACKOFFICE } from "@/core/navigation";
-import { theme } from "@/theme";
-import ColorModeSelect from "@/theme/ColorModeIconDropdown";
+import { backofficeTheme } from "@/theme/backofficeTheme";
 import { Stack } from "@mui/material";
 import SidebarFooterAccount from "@/components/core/SidebarFooterAccount";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 function CustomToolbarActions() {
-  return (
-    <Stack direction="row" alignItems="center">
-      <ColorModeSelect />
-    </Stack>
-  );
+  return <Stack direction="row" alignItems="center" />;
 }
 
 export default function Layout(props: { children: React.ReactNode }) {
@@ -40,27 +35,43 @@ export default function Layout(props: { children: React.ReactNode }) {
     signIn,
     signOut: () => signOut({ callbackUrl: "/admin/login" }),
   };
+
   return (
-    <AppProvider
-      navigation={NAVIGATION_BACKOFFICE}
-      theme={theme}
-      router={toolpadRouter}
-      authentication={authentication}
-      session={status === "loading" ? undefined : data}
-    >
-      <DashboardLayout
-        branding={{
-          logo: false,
-          title: "Backoffice",
-          homeUrl: "/backoffice",
-        }}
-        defaultSidebarCollapsed
-        slots={{
-          sidebarFooter: SidebarFooterAccount,
-        }}
+    <div className="backoffice-shell">
+      <AppProvider
+        navigation={NAVIGATION_BACKOFFICE}
+        theme={backofficeTheme}
+        router={toolpadRouter}
+        authentication={authentication}
+        session={status === "loading" ? undefined : data}
       >
-        {props.children}
-      </DashboardLayout>
-    </AppProvider>
+        <DashboardLayout
+          branding={{
+            logo: (
+              <span
+                style={{
+                  fontFamily: "var(--font-syne), sans-serif",
+                  fontWeight: 800,
+                  fontSize: "14px",
+                  letterSpacing: "1px",
+                  color: "#63b3ed",
+                }}
+              >
+                CODE<span style={{ color: "#e2e8f0" }}>STATION</span>
+              </span>
+            ),
+            title: "",
+            homeUrl: "/backoffice",
+          }}
+          defaultSidebarCollapsed={false}
+          slots={{
+            sidebarFooter: SidebarFooterAccount,
+            toolbarActions: CustomToolbarActions,
+          }}
+        >
+          {props.children}
+        </DashboardLayout>
+      </AppProvider>
+    </div>
   );
 }
