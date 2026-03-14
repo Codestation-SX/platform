@@ -9,8 +9,19 @@ import HistoryEduIcon from "@mui/icons-material/HistoryEdu";
 import QuizIcon from "@mui/icons-material/Quiz";
 import GradeIcon from "@mui/icons-material/Grade";
 import GroupsIcon from "@mui/icons-material/Groups";
+import DashboardIcon from "@mui/icons-material/Dashboard";
 
 export const NAVIGATION_BACKOFFICE: Navigation = [
+  {
+    segment: "backoffice",
+    title: "Dashboard",
+    icon: <DashboardIcon />,
+  },
+  { kind: "divider" },
+  {
+    kind: "header",
+    title: "Gestão",
+  },
   {
     segment: "backoffice/users",
     title: "Usuários",
@@ -31,6 +42,11 @@ export const NAVIGATION_BACKOFFICE: Navigation = [
     title: "Aulas",
     icon: <PlayLessonIcon />,
   },
+  { kind: "divider" },
+  {
+    kind: "header",
+    title: "Financeiro",
+  },
   {
     segment: "backoffice/contracts",
     title: "Contratos",
@@ -40,6 +56,11 @@ export const NAVIGATION_BACKOFFICE: Navigation = [
     segment: "backoffice/payments",
     title: "Pagamentos",
     icon: <PaymentIcon />,
+  },
+  { kind: "divider" },
+  {
+    kind: "header",
+    title: "Avaliações",
   },
   {
     segment: "backoffice/provas",

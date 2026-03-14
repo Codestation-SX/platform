@@ -1,4 +1,6 @@
 import Divider from "@mui/material/Divider";
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import { backofficeTheme } from "@/theme/backofficeTheme";
 import AppAppBar from "@/components/core/StyledAppBar";
 import Hero from "./components/Hero";
 import Highlights from "./components/Highlights";
@@ -8,19 +10,21 @@ import Footer from "./components/Footer";
 
 export default function LandingPage() {
   return (
-    <>
-      dev.eadcodestation.com.br
-      <AppAppBar />
-      <Hero />
-      <div>
-        <Testimonials />
-        <Divider />
-        <Highlights />
-        <Divider />
-        <FAQ />
-        <Divider />
-        <Footer />
+    <ThemeProvider theme={backofficeTheme}>
+      <CssBaseline />
+      <div className="backoffice-shell">
+        <AppAppBar />
+        <Hero />
+        <div>
+          <Testimonials />
+          <Divider />
+          <Highlights />
+          <Divider />
+          <FAQ />
+          <Divider />
+          <Footer />
+        </div>
       </div>
-    </>
+    </ThemeProvider>
   );
 }
