@@ -34,7 +34,7 @@ export const NAVIGATION_BACKOFFICE: Navigation = [
   },
   {
     segment: "backoffice/units",
-    title: "Unidades",
+    title: "Módulos",
     icon: <ViewModule />,
   },
   {

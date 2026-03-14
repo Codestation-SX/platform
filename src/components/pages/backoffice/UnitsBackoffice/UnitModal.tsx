@@ -81,7 +81,7 @@ export default function UnitModal({
         method: id ? "PUT" : "POST",
         data: { id, ...data },
       });
-      success(`Unidade ${isEdit ? "editada" : "criada"} com sucesso!`);
+      success(`Módulo ${isEdit ? "editado" : "criado"} com sucesso!`);
       onSaved();
     } catch (error) {
       setApiError(handleApiClientError(error));
@@ -92,7 +92,7 @@ export default function UnitModal({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{id ? "Editar Unidade" : "Nova Unidade"}</DialogTitle>
+      <DialogTitle>{id ? "Editar Módulo" : "Novo Módulo"}</DialogTitle>
       <DialogContent>
         {apiError && (
           <Typography color="error" variant="body2">

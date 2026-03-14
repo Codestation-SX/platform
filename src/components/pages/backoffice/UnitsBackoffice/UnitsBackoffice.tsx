@@ -90,8 +90,8 @@ export default function UnitsBackofficePage() {
 
       {deleteId && (
         <DeleteConfirmationModal
-          title="Excluir Unidade"
-          description="Tem certeza que deseja excluir esta unidade?"
+          title="Excluir Módulo"
+          description="Tem certeza que deseja excluir este módulo?"
           onClose={() => setDeleteId(null)}
           onConfirm={async () => {
             await api

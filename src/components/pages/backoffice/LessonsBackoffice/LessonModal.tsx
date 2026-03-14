@@ -28,7 +28,7 @@ const lessonSchema = z.object({
   videoUrl: z.string().url("URL inválida"),
   duration: z.coerce.number().positive("Deve ser um número positivo"),
   isFree: z.boolean(),
-  unitId: z.string().min(1, "Unidade é obrigatória"),
+  unitId: z.string().min(1, "Módulo é obrigatório"),
   turmaId: z.string().min(1, "Turma é obrigatória"),
 });
 
@@ -215,7 +215,7 @@ export default function LessonModal({ id, onClose, onSaved, open }: Props) {
           />
 
           <FormControl>
-            <FormLabel htmlFor="unitId">Unidade</FormLabel>
+            <FormLabel htmlFor="unitId">Módulo</FormLabel>
             <Controller
               name="unitId"
               control={control}
