@@ -32,7 +32,7 @@ export default function UnitsBackofficePage() {
           variant="contained"
           sx={{ mb: 2 }}
         >
-          Nova módulo
+          Novo módulo
         </Button>
       </Box>
       <BackofficeTable
