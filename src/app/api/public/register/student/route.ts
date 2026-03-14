@@ -36,16 +36,6 @@ export async function POST(req: Request) {
       );
     }
 
-    if (data.rg) {
-      const rgExists = await prisma.user.findUnique({ where: { rg: data.rg } });
-      if (rgExists) {
-        return NextResponse.json(
-          { error: "RG já cadastrado." },
-          { status: 400 }
-        );
-      }
-    }
-
     // ✅ Criptografa a senha
     const hashedPassword = await hash(data.password, 10);
     console.log(data);
