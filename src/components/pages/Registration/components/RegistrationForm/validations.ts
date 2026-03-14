@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-const cpfRegex = /^\d{11}$/;
+const cpfRegex = /^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/;
 export const rgRegex = /^\d{7,11}$/;
 const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
 
@@ -41,6 +41,9 @@ export const registerSchema = z
     password: z.string().min(6, "Mínimo 6 caracteres"),
     confirmPassword: z.string().min(6, "Mínimo 6 caracteres"),
     address: addressSchema,
+    terms: z.boolean().refine((val) => val === true, {
+      message: "Você deve aceitar os termos de uso e política de privacidade",
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "As senhas não coincidem",

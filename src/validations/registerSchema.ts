@@ -1,7 +1,7 @@
 import { rgRegex } from "@/components/pages/Registration/components/RegistrationForm/validations";
 import * as z from "zod";
 
-const cpfRegex = /^\d{11}$/;
+const cpfRegex = /^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/;
 
 const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
 

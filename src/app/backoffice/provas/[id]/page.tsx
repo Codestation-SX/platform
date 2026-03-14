@@ -5,12 +5,14 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
   Alert,
+  Autocomplete,
   Box,
   Breadcrumbs,
   Button,
   Card,
   CardContent,
   Checkbox,
+  Chip,
   CircularProgress,
   Container,
   Divider,
@@ -23,6 +25,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import {
   Control,
   Controller,
@@ -75,6 +78,7 @@ type ApiPergunta = {
 };
 
 type Turma = { id: string; nome: string };
+type Aluno = { id: string; firstName: string; lastName: string; email: string; turma?: { id: string; nome: string } | null };
 
 type ApiProva = {
   id: string;
@@ -306,11 +310,34 @@ export default function EditarProvaPage() {
   const [sucesso, setSucesso] = useState("");
   const [salvando, setSalvando] = useState(false);
   const [turmas, setTurmas] = useState<Turma[]>([]);
+  const [alunosAtribuidos, setAlunosAtribuidos] = useState<Aluno[]>([]);
+  const [todosAlunos, setTodosAlunos] = useState<Aluno[]>([]);
+  const [alunoSelecionado, setAlunoSelecionado] = useState<Aluno | null>(null);
+  const [adicionandoAluno, setAdicionandoAluno] = useState(false);
+  const [removendoAlunoId, setRemovendoAlunoId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/backoffice/turmas?status=ATIVA", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => setTurmas(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!params.id) return;
+    fetch(`/api/backoffice/provas/${params.id}/alunos`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => setAlunosAtribuidos(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, [params.id]);
+
+  useEffect(() => {
+    fetch("/api/backoffice/users?limit=200&filter_role=student&operator_role=equals", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        const items = data?.data?.items ?? [];
+        setTodosAlunos(items);
+      })
       .catch(() => {});
   }, []);
 
@@ -516,6 +543,112 @@ export default function EditarProvaPage() {
         {erro && <Alert severity="error">{erro}</Alert>}
         {sucesso && <Alert severity="success">{sucesso}</Alert>}
 
+        {/* ── Atribuição individual de alunos ── */}
+        <Card>
+          <CardContent>
+            <Stack spacing={2}>
+              <Typography variant="h6" fontWeight={700}>
+                Alunos atribuídos individualmente
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Além de atribuir a prova por turma, você pode atribuí-la a alunos específicos.
+              </Typography>
+
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="flex-start">
+                <Autocomplete
+                  options={todosAlunos.filter(
+                    (a) => !alunosAtribuidos.some((at) => at.id === a.id)
+                  )}
+                  getOptionLabel={(a) => `${a.firstName} ${a.lastName} — ${a.email}`}
+                  value={alunoSelecionado}
+                  onChange={(_, value) => setAlunoSelecionado(value)}
+                  renderInput={(inputParams) => (
+                    <TextField {...inputParams} label="Buscar aluno" size="small" />
+                  )}
+                  sx={{ minWidth: 320 }}
+                  noOptionsText="Nenhum aluno encontrado"
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                />
+                <Button
+                  variant="contained"
+                  startIcon={<PersonAddIcon />}
+                  disabled={!alunoSelecionado || adicionandoAluno}
+                  onClick={async () => {
+                    if (!alunoSelecionado) return;
+                    setAdicionandoAluno(true);
+                    try {
+                      const res = await fetch(`/api/backoffice/provas/${params.id}/alunos`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ alunoId: alunoSelecionado.id }),
+                      });
+                      const data = await res.json();
+                      if (res.ok) {
+                        setAlunosAtribuidos(Array.isArray(data) ? data : []);
+                        setAlunoSelecionado(null);
+                      }
+                    } finally {
+                      setAdicionandoAluno(false);
+                    }
+                  }}
+                >
+                  {adicionandoAluno ? "Adicionando..." : "Adicionar"}
+                </Button>
+              </Stack>
+
+              {alunosAtribuidos.length === 0 ? (
+                <Typography variant="body2" color="text.secondary" fontStyle="italic">
+                  Nenhum aluno atribuído individualmente.
+                </Typography>
+              ) : (
+                <Stack spacing={1}>
+                  {alunosAtribuidos.map((aluno) => (
+                    <Stack
+                      key={aluno.id}
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      sx={{ p: 1, borderRadius: 1, border: "1px solid", borderColor: "divider" }}
+                    >
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Typography variant="body2">
+                          {aluno.firstName} {aluno.lastName}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {aluno.email}
+                        </Typography>
+                        {aluno.turma && (
+                          <Chip label={aluno.turma.nome} size="small" variant="outlined" />
+                        )}
+                      </Stack>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        disabled={removendoAlunoId === aluno.id}
+                        onClick={async () => {
+                          setRemovendoAlunoId(aluno.id);
+                          try {
+                            const res = await fetch(
+                              `/api/backoffice/provas/${params.id}/alunos?alunoId=${aluno.id}`,
+                              { method: "DELETE" }
+                            );
+                            const data = await res.json();
+                            if (res.ok) setAlunosAtribuidos(Array.isArray(data) ? data : []);
+                          } finally {
+                            setRemovendoAlunoId(null);
+                          }
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Stack>
+                  ))}
+                </Stack>
+              )}
+            </Stack>
+          </CardContent>
+        </Card>
+
         <form onSubmit={handleSubmit(onSubmit)} autoComplete="off">
           <Stack spacing={3}>
             <Card>
@@ -546,15 +679,13 @@ export default function EditarProvaPage() {
                   />
 
                   <TextField
-                    label="Turma"
+                    label="Turma (opcional)"
                     fullWidth
                     select
                     SelectProps={{ native: true }}
-                    {...register("turmaId", { required: "Selecione uma turma" })}
-                    error={!!errors.turmaId}
-                    helperText={errors.turmaId?.message}
+                    {...register("turmaId")}
                   >
-                    <option value="">Selecione uma turma</option>
+                    <option value="">Nenhuma turma</option>
                     {turmas.map((t) => (
                       <option key={t.id} value={t.id}>{t.nome}</option>
                     ))}

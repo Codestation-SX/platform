@@ -214,14 +214,12 @@ export class ProvaService {
  static async listarDisponiveisParaAluno(alunoId: string) {
   const agora = new Date();
 
-  // Busca a turma do aluno
   const aluno = await prisma.user.findUnique({
     where: { id: alunoId },
     select: { turmaId: true, ativo: true },
   });
 
-  // Aluno sem turma ou inativo não vê nenhuma prova
-  if (!aluno?.turmaId || aluno.ativo === false) {
+  if (aluno?.ativo === false) {
     return [];
   }
 
@@ -232,14 +230,24 @@ export class ProvaService {
 
   const provasJaTentadas = tentativasDoAluno.map((t) => t.provaId);
 
-  // Retorna provas da turma do aluno que ainda não expiraram (inclui futuras)
+  const whereOr: object[] = [];
+
+  if (aluno?.turmaId) {
+    whereOr.push({ turmaId: aluno.turmaId });
+  }
+
+  // Provas atribuídas individualmente
+  whereOr.push({ alunosAtribuidos: { some: { id: alunoId } } });
+
+  if (whereOr.length === 0) return [];
+
   return prisma.prova.findMany({
     where: {
       deletedAt: null,
       status: "ATIVA",
-      turmaId: aluno.turmaId,
       dataFimDisponibilidade: { gte: agora },
       id: { notIn: provasJaTentadas },
+      OR: whereOr,
     },
     select: {
       id: true,
@@ -474,7 +482,7 @@ export class ProvaService {
   const prova = await prisma.prova.findFirst({
     where: { id: provaId, deletedAt: null, status: "ATIVA" },
     include: {
-      _count: { select: { tentativas: true } },
+      alunosAtribuidos: { select: { id: true } },
     },
   });
 
@@ -482,18 +490,20 @@ export class ProvaService {
 
   const agora = new Date();
 
-  // Encerra se passou da data fim
   const dataExpirou = agora > prova.dataFimDisponibilidade;
 
-  // Encerra se todos os alunos da turma já fizeram a prova
-  const totalAlunos = await prisma.user.count({
-    where: {
-      role: "student",
-      deletedAt: null,
-      ativo: true,
-      ...(prova.turmaId ? { turmaId: prova.turmaId } : {}),
-    },
-  });
+  // Coleta IDs únicos dos destinatários da prova
+  const alunoIdsSet = new Set<string>(prova.alunosAtribuidos.map((a) => a.id));
+
+  if (prova.turmaId) {
+    const alunosTurma = await prisma.user.findMany({
+      where: { role: "student", deletedAt: null, ativo: true, turmaId: prova.turmaId },
+      select: { id: true },
+    });
+    alunosTurma.forEach((a) => alunoIdsSet.add(a.id));
+  }
+
+  const totalAlunos = alunoIdsSet.size;
 
   const totalTentativasEncerradas = await prisma.provaTentativa.count({
     where: {

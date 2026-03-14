@@ -14,22 +14,32 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const nomeAluno = searchParams.get("aluno") || "";
+  const turmaId = searchParams.get("turmaId") || "";
 
   const tentativas = await prisma.provaTentativa.findMany({
     where: {
       status: { in: ["CONCLUIDA", "ENCERRADA_POR_TEMPO", "REPROVADO_POR_FRAUDE"] },
-      aluno: nomeAluno
-        ? {
-            OR: [
-              { firstName: { contains: nomeAluno, mode: "insensitive" } },
-              { lastName: { contains: nomeAluno, mode: "insensitive" } },
-            ],
-          }
-        : undefined,
+      aluno: {
+        ...(nomeAluno
+          ? {
+              OR: [
+                { firstName: { contains: nomeAluno, mode: "insensitive" } },
+                { lastName: { contains: nomeAluno, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+        ...(turmaId ? { turmaId } : {}),
+      },
     },
     include: {
       aluno: {
-        select: { id: true, firstName: true, lastName: true, email: true },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          turma: { select: { id: true, nome: true } },
+        },
       },
       prova: {
         select: { id: true, titulo: true, percentualMinimoAprovacao: true },

@@ -11,6 +11,7 @@ import {
   Container,
   Divider,
   InputAdornment,
+  MenuItem,
   Stack,
   Tab,
   Tabs,
@@ -26,6 +27,7 @@ type Aluno = {
   firstName: string;
   lastName: string;
   email: string;
+  turma?: { id: string; nome: string } | null;
 };
 
 type Prova = {
@@ -51,31 +53,34 @@ type AlunoAgrupado = {
   tentativas: Tentativa[];
 };
 
+type Turma = { id: string; nome: string };
+
 export default function NotasPage() {
   const [tentativas, setTentativas] = useState<Tentativa[]>([]);
+  const [turmas, setTurmas] = useState<Turma[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [busca, setBusca] = useState("");
+  const [turmaId, setTurmaId] = useState("");
   const [tabAtiva, setTabAtiva] = useState(0);
 
-  const carregarNotas = async (filtroAluno = "") => {
+  useEffect(() => {
+    fetch("/api/backoffice/turmas")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setTurmas(data); })
+      .catch(() => {});
+  }, []);
+
+  const carregarNotas = async (filtroAluno = "", filtroTurma = "") => {
     try {
       setLoading(true);
       setErro("");
-
       const params = new URLSearchParams();
       if (filtroAluno) params.set("aluno", filtroAluno);
-
-      const response = await fetch(`/api/backoffice/notas?${params.toString()}`, {
-        cache: "no-store",
-      });
-
+      if (filtroTurma) params.set("turmaId", filtroTurma);
+      const response = await fetch(`/api/backoffice/notas?${params.toString()}`, { cache: "no-store" });
       const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result?.error || "Erro ao carregar notas.");
-      }
-
+      if (!response.ok) throw new Error(result?.error || "Erro ao carregar notas.");
       setTentativas(result);
     } catch (error: any) {
       setErro(error.message || "Erro ao carregar notas.");
@@ -84,18 +89,26 @@ export default function NotasPage() {
     }
   };
 
-  useEffect(() => {
-    carregarNotas();
-  }, []);
+  useEffect(() => { carregarNotas(); }, []);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      carregarNotas(busca);
-    }, 400);
+    if (tabAtiva !== 0) return;
+    const timeout = setTimeout(() => carregarNotas(busca, ""), 400);
     return () => clearTimeout(timeout);
   }, [busca]);
 
-  // Agrupa tentativas por aluno
+  useEffect(() => {
+    if (tabAtiva !== 1) return;
+    carregarNotas("", turmaId);
+  }, [turmaId]);
+
+  const handleTabChange = (_: any, v: number) => {
+    setTabAtiva(v);
+    setBusca("");
+    setTurmaId("");
+    carregarNotas("", "");
+  };
+
   const alunosAgrupados: AlunoAgrupado[] = tentativas.reduce<AlunoAgrupado[]>(
     (acc, tentativa) => {
       const existente = acc.find((a) => a.aluno.id === tentativa.aluno.id);
@@ -109,15 +122,10 @@ export default function NotasPage() {
     []
   );
 
-  // Média geral de todos os alunos
   const mediaGeral =
     tentativas.length > 0
-      ? Math.round(
-          tentativas.reduce((acc, t) => acc + t.percentualAcerto, 0) /
-            tentativas.length
-        )
+      ? Math.round(tentativas.reduce((acc, t) => acc + t.percentualAcerto, 0) / tentativas.length)
       : null;
-
   const totalAprovados = tentativas.filter((t) => t.aprovado).length;
   const totalReprovados = tentativas.filter((t) => !t.aprovado).length;
 
@@ -127,95 +135,58 @@ export default function NotasPage() {
     REPROVADO_POR_FRAUDE: "Fraude",
   };
 
+  const statusColor: Record<string, "default" | "success" | "error" | "warning"> = {
+    CONCLUIDA: "success",
+    ENCERRADA_POR_TEMPO: "warning",
+    REPROVADO_POR_FRAUDE: "error",
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Stack spacing={3}>
         {/* Header */}
         <Box>
-          <Typography variant="h4" fontWeight={700}>
-            Notas
-          </Typography>
-          <Typography color="text.secondary">
-            Acompanhe o desempenho dos alunos nas provas.
-          </Typography>
+          <Typography variant="h4" fontWeight={700}>Notas</Typography>
+          <Typography color="text.secondary">Acompanhe o desempenho dos alunos nas provas.</Typography>
         </Box>
 
         {/* Cards de resumo */}
         {!loading && tentativas.length > 0 && (
           <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-            <Card variant="outlined" sx={{ flex: 1, borderRadius: 2 }}>
-              <CardContent>
-                <Typography variant="body2" color="text.secondary">
-                  Total de tentativas
-                </Typography>
-                <Typography variant="h4" fontWeight={700}>
-                  {tentativas.length}
-                </Typography>
+            <Card variant="outlined" sx={{ flex: 1 }}>
+              <CardContent sx={{ p: "16px !important" }}>
+                <Typography variant="body2" color="text.secondary">Total de tentativas</Typography>
+                <Typography variant="h4" fontWeight={700}>{tentativas.length}</Typography>
               </CardContent>
             </Card>
-
-            <Card variant="outlined" sx={{ flex: 1, borderRadius: 2 }}>
-              <CardContent>
-                <Typography variant="body2" color="text.secondary">
-                  Média geral
-                </Typography>
-                <Typography variant="h4" fontWeight={700}>
-                  {mediaGeral}%
-                </Typography>
+            <Card variant="outlined" sx={{ flex: 1 }}>
+              <CardContent sx={{ p: "16px !important" }}>
+                <Typography variant="body2" color="text.secondary">Média geral</Typography>
+                <Typography variant="h4" fontWeight={700}>{mediaGeral}%</Typography>
               </CardContent>
             </Card>
-
-            <Card
-              variant="outlined"
-              sx={{ flex: 1, borderRadius: 2, borderColor: "success.light" }}
-            >
-              <CardContent>
-                <Typography variant="body2" color="text.secondary">
-                  Aprovados
-                </Typography>
-                <Typography variant="h4" fontWeight={700} color="success.main">
-                  {totalAprovados}
-                </Typography>
+            <Card variant="outlined" sx={{ flex: 1 }}>
+              <CardContent sx={{ p: "16px !important" }}>
+                <Typography variant="body2" color="text.secondary">Aprovados</Typography>
+                <Typography variant="h4" fontWeight={700} color="success.main">{totalAprovados}</Typography>
               </CardContent>
             </Card>
-
-            <Card
-              variant="outlined"
-              sx={{ flex: 1, borderRadius: 2, borderColor: "error.light" }}
-            >
-              <CardContent>
-                <Typography variant="body2" color="text.secondary">
-                  Reprovados
-                </Typography>
-                <Typography variant="h4" fontWeight={700} color="error.main">
-                  {totalReprovados}
-                </Typography>
+            <Card variant="outlined" sx={{ flex: 1 }}>
+              <CardContent sx={{ p: "16px !important" }}>
+                <Typography variant="body2" color="text.secondary">Reprovados</Typography>
+                <Typography variant="h4" fontWeight={700} color="error.main">{totalReprovados}</Typography>
               </CardContent>
             </Card>
           </Stack>
         )}
 
         {/* Filtros */}
-        <Card variant="outlined" sx={{ borderRadius: 2 }}>
-          <CardContent>
+        <Card variant="outlined">
+          <CardContent sx={{ p: "16px !important" }}>
             <Stack spacing={2}>
-              <Tabs
-                value={tabAtiva}
-                onChange={(_, v) => setTabAtiva(v)}
-                sx={{ borderBottom: 1, borderColor: "divider" }}
-              >
-                <Tab
-                  icon={<PersonIcon fontSize="small" />}
-                  iconPosition="start"
-                  label="Por aluno"
-                />
-                <Tab
-                  icon={<GroupIcon fontSize="small" />}
-                  iconPosition="start"
-                  label="Por turma"
-                  disabled
-                  sx={{ opacity: 0.5 }}
-                />
+              <Tabs value={tabAtiva} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: "divider" }}>
+                <Tab icon={<PersonIcon fontSize="small" />} iconPosition="start" label="Por aluno" />
+                <Tab icon={<GroupIcon fontSize="small" />} iconPosition="start" label="Por turma" />
               </Tabs>
 
               {tabAtiva === 0 && (
@@ -237,9 +208,19 @@ export default function NotasPage() {
               )}
 
               {tabAtiva === 1 && (
-                <Alert severity="info">
-                  Filtro por turma estará disponível em breve.
-                </Alert>
+                <TextField
+                  select
+                  label="Selecione a turma"
+                  value={turmaId}
+                  onChange={(e) => setTurmaId(e.target.value)}
+                  size="small"
+                  fullWidth
+                >
+                  <MenuItem value="">Todas as turmas</MenuItem>
+                  {turmas.map((t) => (
+                    <MenuItem key={t.id} value={t.id}>{t.nome}</MenuItem>
+                  ))}
+                </TextField>
               )}
             </Stack>
           </CardContent>
@@ -252,13 +233,15 @@ export default function NotasPage() {
             <CircularProgress />
           </Stack>
         ) : alunosAgrupados.length === 0 ? (
-          <Card variant="outlined" sx={{ borderRadius: 2 }}>
-            <CardContent>
+          <Card variant="outlined">
+            <CardContent sx={{ p: "16px !important" }}>
               <Typography variant="h6">Nenhum resultado encontrado</Typography>
               <Typography color="text.secondary" sx={{ mt: 1 }}>
                 {busca
                   ? `Nenhum aluno encontrado para "${busca}".`
-                  : "Ainda não há tentativas registradas."}
+                  : turmaId
+                    ? "Nenhuma nota registrada para esta turma."
+                    : "Ainda não há tentativas registradas."}
               </Typography>
             </CardContent>
           </Card>
@@ -267,17 +250,13 @@ export default function NotasPage() {
             {alunosAgrupados.map(({ aluno, tentativas: tents }) => {
               const mediaAluno =
                 tents.length > 0
-                  ? Math.round(
-                      tents.reduce((acc, t) => acc + t.percentualAcerto, 0) /
-                        tents.length
-                    )
+                  ? Math.round(tents.reduce((acc, t) => acc + t.percentualAcerto, 0) / tents.length)
                   : 0;
-
               const aprovadoGeral = tents.every((t) => t.aprovado);
 
               return (
-                <Card key={aluno.id} variant="outlined" sx={{ borderRadius: 2 }}>
-                  <CardContent>
+                <Card key={aluno.id} variant="outlined">
+                  <CardContent sx={{ p: "16px !important" }}>
                     <Stack spacing={2}>
                       {/* Cabeçalho do aluno */}
                       <Stack
@@ -297,13 +276,10 @@ export default function NotasPage() {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
+                              flexShrink: 0,
                             }}
                           >
-                            <Typography
-                              fontWeight={700}
-                              color="white"
-                              fontSize={16}
-                            >
+                            <Typography fontWeight={700} color="background.default" fontSize={16}>
                               {aluno.firstName[0].toUpperCase()}
                             </Typography>
                           </Box>
@@ -314,21 +290,24 @@ export default function NotasPage() {
                             <Typography variant="body2" color="text.secondary">
                               {aluno.email}
                             </Typography>
+                            {aluno.turma && (
+                              <Chip
+                                label={aluno.turma.nome}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                                sx={{ mt: 0.5 }}
+                              />
+                            )}
                           </Box>
                         </Stack>
 
                         <Stack direction="row" spacing={1} alignItems="center">
-                          <Typography variant="body2" color="text.secondary">
-                            Média:
-                          </Typography>
+                          <Typography variant="body2" color="text.secondary">Média:</Typography>
                           <Chip
                             label={`${mediaAluno}%`}
                             size="small"
-                            sx={{
-                              fontWeight: 700,
-                              bgcolor: aprovadoGeral ? "success.light" : "error.light",
-                              color: aprovadoGeral ? "success.dark" : "error.dark",
-                            }}
+                            color={aprovadoGeral ? "success" : "error"}
                           />
                         </Stack>
                       </Stack>
@@ -348,7 +327,9 @@ export default function NotasPage() {
                               px: 2,
                               py: 1.5,
                               borderRadius: 1.5,
-                              bgcolor: "grey.50",
+                              bgcolor: "action.hover",
+                              border: "1px solid",
+                              borderColor: "divider",
                             }}
                           >
                             <Box flex={1}>
@@ -356,12 +337,12 @@ export default function NotasPage() {
                                 {t.prova.titulo}
                               </Typography>
                               {t.dataFim && (
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                >
+                                <Typography variant="body2" color="text.secondary">
                                   {new Date(t.dataFim).toLocaleDateString("pt-BR")}{" "}
-                                  {new Date(t.dataFim).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                                  {new Date(t.dataFim).toLocaleTimeString("pt-BR", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
                                 </Typography>
                               )}
                             </Box>
@@ -370,34 +351,18 @@ export default function NotasPage() {
                               <Chip
                                 label={statusLabel[t.status] ?? t.status}
                                 size="small"
+                                color={statusColor[t.status] ?? "default"}
                                 variant="outlined"
                               />
-
                               <Chip
                                 label={`${Math.round(t.percentualAcerto)}%`}
                                 size="small"
-                                sx={{
-                                  fontWeight: 700,
-                                  minWidth: 60,
-                                  bgcolor: t.aprovado
-                                    ? "success.light"
-                                    : "error.light",
-                                  color: t.aprovado
-                                    ? "success.dark"
-                                    : "error.dark",
-                                }}
+                                color={t.aprovado ? "success" : "error"}
                               />
-
                               <Chip
                                 label={t.aprovado ? "Aprovado" : "Reprovado"}
                                 size="small"
-                                sx={{
-                                  fontWeight: 700,
-                                  bgcolor: t.aprovado
-                                    ? "success.main"
-                                    : "error.main",
-                                  color: "white",
-                                }}
+                                color={t.aprovado ? "success" : "error"}
                               />
                             </Stack>
                           </Stack>

@@ -10,6 +10,7 @@ import { parseSortParams } from "@/utils/api/sorting";
 const unitSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
+  turmaId: z.string().optional().nullable(),
 });
 
 const updateSchema = unitSchema.extend({
@@ -64,6 +65,7 @@ export async function GET(req: NextRequest) {
       take: limit,
       include: {
         lessons: { where: { deletedAt: null }, orderBy: { order: "asc" } },
+        turma: { select: { id: true, nome: true } },
       },
     });
 

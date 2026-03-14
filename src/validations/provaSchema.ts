@@ -55,7 +55,7 @@ export const provaSchema = z
       .max(2000, "A descrição deve ter no máximo 2000 caracteres")
       .optional()
       .or(z.literal("")),
-    turmaId: z.string().trim().min(1, "A turma é obrigatória"),
+    turmaId: z.string().trim().optional().or(z.literal("")),
     dataInicioDisponibilidade: z.string().min(1, "A data de início é obrigatória"),
     dataFimDisponibilidade: z.string().min(1, "A data de fim é obrigatória"),
     tempoDuracaoMinutos: z

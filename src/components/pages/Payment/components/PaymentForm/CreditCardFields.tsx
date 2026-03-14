@@ -55,7 +55,7 @@ export function CreditCardFields({
           render={({ field }) => (
             <OutlinedInput
               {...field}
-              placeholder="João da Silva"
+              placeholder="Insira seu nome igual ao que está no cartão"
               size="small"
             />
           )}
@@ -73,7 +73,7 @@ export function CreditCardFields({
             render={({ field }) => (
               <OutlinedInput
                 {...field}
-                placeholder="07/29"
+                placeholder="00/00"
                 size="small"
                 sx={{
                   width: "100px",
@@ -101,7 +101,7 @@ export function CreditCardFields({
             render={({ field }) => (
               <OutlinedInput
                 {...field}
-                placeholder="123"
+                placeholder="000"
                 size="small"
                 sx={{
                   width: "100px",

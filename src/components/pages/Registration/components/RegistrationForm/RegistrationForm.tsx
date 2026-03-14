@@ -5,10 +5,15 @@ import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
+  Checkbox,
+  CircularProgress,
   Divider,
   FormControl,
+  FormControlLabel,
+  FormHelperText,
   FormLabel,
   Grid,
+  InputAdornment,
   MenuItem,
   TextField,
   Typography,
@@ -20,6 +25,7 @@ import StyledCard from "@/components/core/StyledCard";
 import { registerSchema, RegisterFormData } from "./validations";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/hooks/useToast";
+import { useState } from "react";
 
 const educationLevels = [
   { value: "NONE", label: "Sem escolaridade" },
@@ -34,6 +40,7 @@ const educationLevels = [
 export default function RegisterForm() {
   const { success, error } = useToast();
   const router = useRouter();
+  const [cepLoading, setCepLoading] = useState(false);
   const today = new Date();
   const minDate = new Date(
     today.getFullYear() - 90,
@@ -46,28 +53,56 @@ export default function RegisterForm() {
     today.getDate()
   );
 
-  const { control, handleSubmit } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      cpf: "",
-      birthDate: undefined,
-      educationLevel: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      address: {
-        zipCode: "",
-        state: "",
-        city: "",
-        neighborhood: "",
-        street: "",
-        number: "",
-        complement: "",
+  const { control, handleSubmit, setValue, setError, clearErrors } =
+    useForm<RegisterFormData>({
+      resolver: zodResolver(registerSchema),
+      defaultValues: {
+        firstName: "",
+        lastName: "",
+        cpf: "",
+        birthDate: undefined,
+        educationLevel: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        address: {
+          zipCode: "",
+          state: "",
+          city: "",
+          neighborhood: "",
+          street: "",
+          number: "",
+          complement: "",
+        },
+        terms: false,
       },
-    },
-  });
+    });
+
+  const buscarCep = async (cep: string) => {
+    const cepLimpo = cep.replace(/\D/g, "");
+    if (cepLimpo.length !== 8) return;
+
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const data = await res.json();
+
+      if (data.erro) {
+        setError("address.zipCode", { message: "CEP não encontrado" });
+        return;
+      }
+
+      clearErrors("address.zipCode");
+      setValue("address.street", data.logradouro || "", { shouldValidate: true });
+      setValue("address.neighborhood", data.bairro || "", { shouldValidate: true });
+      setValue("address.city", data.localidade || "", { shouldValidate: true });
+      setValue("address.state", data.uf || "", { shouldValidate: true });
+    } catch {
+      setError("address.zipCode", { message: "Erro ao buscar CEP" });
+    } finally {
+      setCepLoading(false);
+    }
+  };
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -76,8 +111,7 @@ export default function RegisterForm() {
         ...data,
         birthDate: formattedDate,
       };
-      const response = await api.post("/api/public/register/student", payload);
-      console.log({ response });
+      await api.post("/api/public/register/student", payload);
 
       const result = await signIn("credentials", {
         redirect: false,
@@ -86,13 +120,17 @@ export default function RegisterForm() {
       });
 
       if (!!result?.ok) {
-        router.push("/painel");
-        success(`Cadastro criado com sucesso! Redirecionando...`);
+        success(`Cadastro criado com sucesso! Redirecionando para pagamento...`);
+        router.push("/painel/pagamento");
       } else {
         error(`Ocorreu um erro com o cadastro`);
       }
-    } catch (error) {
-      console.error("Erro no envio:", error);
+    } catch (err: any) {
+      console.error("Erro no envio:", err);
+      const mensagem =
+        err?.response?.data?.error ||
+        "Erro ao realizar cadastro. Tente novamente.";
+      error(mensagem);
     }
   };
 
@@ -201,7 +239,6 @@ export default function RegisterForm() {
           </Typography>
 
           <Grid container spacing={2}>
-            {/* Seção: Contato e Acesso */}
             {["email", "password", "confirmPassword"].map((name) => (
               <Grid key={name} size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>
@@ -241,33 +278,54 @@ export default function RegisterForm() {
           </Typography>
 
           <Grid container spacing={2}>
-            {/* Seção: Endereço */}
+            {/* CEP com busca automática */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <FormControl fullWidth>
+                <FormLabel>CEP</FormLabel>
+                <Controller
+                  name="address.zipCode"
+                  control={control}
+                  render={({ field, fieldState: { error } }) => (
+                    <TextField
+                      {...field}
+                      fullWidth
+                      value={field.value ?? ""}
+                      error={!!error?.message}
+                      helperText={error?.message ?? "Digite o CEP para preencher o endereço automaticamente"}
+                      inputProps={{ maxLength: 8 }}
+                      onBlur={(e) => {
+                        field.onBlur();
+                        buscarCep(e.target.value);
+                      }}
+                      InputProps={{
+                        endAdornment: cepLoading ? (
+                          <InputAdornment position="end">
+                            <CircularProgress size={18} />
+                          </InputAdornment>
+                        ) : null,
+                      }}
+                    />
+                  )}
+                />
+              </FormControl>
+            </Grid>
 
-            {[
-              "zipCode",
-              "street",
-              "state",
-              "city",
-              "neighborhood",
-              "number",
-              "complement",
-            ].map((name) => (
+            {/* Demais campos de endereço */}
+            {["street", "state", "city", "neighborhood", "number", "complement"].map((name) => (
               <Grid key={name} size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>
                   <FormLabel>
-                    {name === "zipCode"
-                      ? "CEP"
-                      : name === "state"
-                        ? "Estado"
-                        : name === "city"
-                          ? "Cidade"
-                          : name === "neighborhood"
-                            ? "Bairro"
-                            : name === "street"
-                              ? "Endereço"
-                              : name === "number"
-                                ? "Número"
-                                : "Complemento"}
+                    {name === "state"
+                      ? "Estado"
+                      : name === "city"
+                        ? "Cidade"
+                        : name === "neighborhood"
+                          ? "Bairro"
+                          : name === "street"
+                            ? "Endereço"
+                            : name === "number"
+                              ? "Número"
+                              : "Complemento"}
                   </FormLabel>
                   <Controller
                     name={`address.${name}` as keyof RegisterFormData}
@@ -285,6 +343,36 @@ export default function RegisterForm() {
                 </FormControl>
               </Grid>
             ))}
+
+            {/* Termo de aceite */}
+            <Grid size={{ xs: 12 }} mt={2}>
+              <Controller
+                name="terms"
+                control={control}
+                render={({ field, fieldState: { error } }) => (
+                  <FormControl error={!!error?.message}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={!!field.value}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                        />
+                      }
+                      label={
+                        <Typography variant="body2">
+                          Li e aceito os{" "}
+                          <strong>Termos de Uso</strong> e a{" "}
+                          <strong>Política de Privacidade</strong> da Codestation
+                        </Typography>
+                      }
+                    />
+                    {error?.message && (
+                      <FormHelperText>{error.message}</FormHelperText>
+                    )}
+                  </FormControl>
+                )}
+              />
+            </Grid>
 
             <Grid
               size={{ xs: 12 }}
@@ -306,7 +394,7 @@ export default function RegisterForm() {
                   router.push("/");
                 }}
               >
-                voltar
+                Voltar
               </Button>
               <Button
                 type="submit"

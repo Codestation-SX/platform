@@ -34,6 +34,15 @@ export default withAuth(
       if (token.role !== "admin" && token.role !== "student") {
         return NextResponse.redirect(new URL("/login", req.url));
       }
+
+      // Aluno sem pagamento confirmado só acessa /painel/pagamento
+      const pagamentoConfirmado = (token as any).payment?.status === "PAID";
+      const isAdmin = token.role === "admin";
+      const isPaginaPagamento = pathname.startsWith("/painel/pagamento");
+
+      if (!isAdmin && !pagamentoConfirmado && !isPaginaPagamento) {
+        return NextResponse.redirect(new URL("/painel/pagamento", req.url));
+      }
     }
 
     // Se estiver tentando acessar /login mas já estiver autenticado

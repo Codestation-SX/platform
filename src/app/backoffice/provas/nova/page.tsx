@@ -427,15 +427,13 @@ export default function NovaProvaPage() {
                   />
 
                   <TextField
-                    label="Turma"
+                    label="Turma (opcional)"
                     fullWidth
                     select
                     SelectProps={{ native: true }}
-                    {...register("turmaId", { required: "Selecione uma turma" })}
-                    error={!!errors.turmaId}
-                    helperText={errors.turmaId?.message}
+                    {...register("turmaId")}
                   >
-                    <option value="">Selecione uma turma</option>
+                    <option value="">Nenhuma turma</option>
                     {turmas.map((t) => (
                       <option key={t.id} value={t.id}>{t.nome}</option>
                     ))}
