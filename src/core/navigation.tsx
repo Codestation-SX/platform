@@ -11,6 +11,7 @@ import GradeIcon from "@mui/icons-material/Grade";
 import GroupsIcon from "@mui/icons-material/Groups";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 export const NAVIGATION_BACKOFFICE: Navigation = [
   {
@@ -62,6 +63,11 @@ export const NAVIGATION_BACKOFFICE: Navigation = [
     segment: "backoffice/matriculas-pendentes",
     title: "Matrículas Pendentes",
     icon: <HourglassEmptyIcon />,
+  },
+  {
+    segment: "backoffice/configuracoes",
+    title: "Valor do Curso",
+    icon: <SettingsIcon />,
   },
   { kind: "divider" },
   {

@@ -4,6 +4,7 @@ import { createPayment } from "@/services/asaas/createPayment";
 import { handleApiError } from "@/utils/api/handleApiError";
 import { findOrCreateCustomer } from "@/services/asaas/findOrCreateCustomer";
 import prisma from "@/lib/prisma";
+import { sendPaymentConfirmationEmail } from "@/lib/mail";
 
 const schema = z.object({
   userId: z.string().min(1),
@@ -41,17 +42,18 @@ export async function POST(req: NextRequest) {
 
     let customerId = input.customerId;
 
+    // Busca o usuário (necessário para email e para criar customer Asaas)
+    const user = await prisma.user.findUnique({
+      where: { id: input.userId },
+      include: { address: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
+    }
+
     // Se não tiver customerId, busca ou cria no Asaas
     if (!customerId) {
-      const user = await prisma.user.findUnique({
-        where: { id: input.userId },
-        include: { address: true },
-      });
-
-      if (!user) {
-        return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
-      }
-
       if (user.asaasCustomerId) {
         customerId = user.asaasCustomerId;
       } else {
@@ -80,6 +82,13 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await createPayment({ ...input, customerId });
+
+    // Envia email de confirmação de pagamento
+    await sendPaymentConfirmationEmail({
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    });
 
     return NextResponse.json(
       { message: "Pagamento criado com sucesso", data: result },

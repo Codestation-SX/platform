@@ -49,7 +49,7 @@ export default function PaymentSuccessModal({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Pagamento gerado com sucesso</DialogTitle>
+      <DialogTitle>Pagamento realizado com sucesso</DialogTitle>
       <DialogContent>
         {billingType === "PIX" ? (
           <>
@@ -116,24 +116,9 @@ export default function PaymentSuccessModal({
               </Button>
             </Box>
           </>
-        ) : invoiceUrl ? (
-          <>
-            <Typography>
-              Clique no botão abaixo para visualizar sua fatura.
-            </Typography>
-            <Box mt={2} textAlign="center">
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => window.open(invoiceUrl, "_blank")}
-              >
-                Ver Fatura
-              </Button>
-            </Box>
-          </>
         ) : (
-          <Typography color="error">
-            Nenhum link de pagamento disponível.
+          <Typography>
+            Pagamento realizado com sucesso! Bem-vindo a Codestation.
           </Typography>
         )}
 

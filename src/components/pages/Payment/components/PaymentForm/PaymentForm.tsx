@@ -7,7 +7,7 @@ import { PaymentOptions } from "./PaymentOptions";
 import { CreditCardFields } from "./CreditCardFields";
 import { PaymentAlerts } from "./PaymentAlerts";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PaymentSuccessModal from "./PaymentSuccessModal";
 import PixFields from "./PixFields";
 import { api } from "@/lib/api";
@@ -18,6 +18,14 @@ export default function PaymentForm() {
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [precoCurso, setPrecoCurso] = useState<number>(1200);
+
+  useEffect(() => {
+    fetch("/api/public/configuracoes")
+      .then((r) => r.json())
+      .then((data) => { if (data.preco_curso) setPrecoCurso(data.preco_curso); })
+      .catch(() => {});
+  }, []);
   const {
     control,
     handleSubmit,
@@ -51,7 +59,7 @@ export default function PaymentForm() {
     const payload: any = {
       userId,
       ...(customerId && { customerId }),
-      value: 1200,
+      value: precoCurso,
       dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 dias
       billingType:
         formData.paymentType === "CREDIT_CARD"
@@ -110,7 +118,7 @@ export default function PaymentForm() {
           <Stack spacing={3}>
             <PaymentOptions control={control} />
             {paymentType === "CREDIT_CARD" && (
-              <CreditCardFields control={control} errors={errors} />
+              <CreditCardFields control={control} errors={errors} precoCurso={precoCurso} />
             )}
             {paymentType === "PIX" && <PixFields />}
             {submitError && (

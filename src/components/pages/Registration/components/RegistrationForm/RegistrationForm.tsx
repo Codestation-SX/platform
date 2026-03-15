@@ -119,11 +119,11 @@ export default function RegisterForm() {
         password: data.password,
       });
 
-      if (!!result?.ok) {
-        success(`Cadastro criado com sucesso! Redirecionando para pagamento...`);
+      if (result?.ok) {
+        success("Cadastro realizado com sucesso!");
         router.push("/painel/pagamento");
       } else {
-        error(`Ocorreu um erro com o cadastro`);
+        error("Ocorreu um erro ao realizar o login. Tente novamente.");
       }
     } catch (err: any) {
       console.error("Erro no envio:", err);

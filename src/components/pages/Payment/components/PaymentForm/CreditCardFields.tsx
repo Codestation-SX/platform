@@ -17,9 +17,11 @@ import { formatCardNumber } from "@/lib/formatCardNumber";
 export function CreditCardFields({
   control,
   errors,
+  precoCurso = 1200,
 }: {
   control: Control<PaymentFormValues>;
   errors: any;
+  precoCurso?: number;
 }) {
   const cardNumber = useWatch({ control, name: "cardNumber" }) || "";
   const brand = getCardBrand(cardNumber);
@@ -65,7 +67,7 @@ export function CreditCardFields({
 
       <Box display="flex" gap={2}>
         {/* Validade */}
-        <FormControl error={!!errors.expirationDate}>
+        <FormControl error={!!errors.expirationDate} sx={{ flex: 1 }}>
           <FormLabel>Validade (MM/AA)</FormLabel>
           <Controller
             name="expirationDate"
@@ -75,9 +77,6 @@ export function CreditCardFields({
                 {...field}
                 placeholder="00/00"
                 size="small"
-                sx={{
-                  width: "100px",
-                }}
                 inputProps={{ maxLength: 5 }}
                 onChange={(e) => {
                   const raw = e.target.value.replace(/\D/g, "").slice(0, 4);
@@ -93,7 +92,7 @@ export function CreditCardFields({
           <FormHelperText>{errors.expirationDate?.message}</FormHelperText>
         </FormControl>
         {/* CVV */}
-        <FormControl error={!!errors.cvv}>
+        <FormControl error={!!errors.cvv} sx={{ flex: 1 }}>
           <FormLabel>CVV</FormLabel>
           <Controller
             name="cvv"
@@ -103,9 +102,6 @@ export function CreditCardFields({
                 {...field}
                 placeholder="000"
                 size="small"
-                sx={{
-                  width: "100px",
-                }}
                 inputProps={{ maxLength: 3 }}
                 onChange={(e) =>
                   field.onChange(e.target.value.replace(/\D/g, "").slice(0, 3))
@@ -134,7 +130,7 @@ export function CreditCardFields({
                 const count = i + 1;
                 return (
                   <option key={count} value={`${count}`}>
-                    {count}x de R$ {(1200 / count).toFixed(2)} sem juros
+                    {count}x de R$ {(precoCurso / count).toFixed(2)} sem juros
                   </option>
                 );
               })}

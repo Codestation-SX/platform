@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -15,25 +9,212 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-enum TurmaStatus {
-  ATIVA
-  ENCERRADA
+model Address {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  zipCode      String
+  state        String
+  city         String
+  neighborhood String
+  street       String
+  number       String
+  complement   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model Configuracao {
+  id        String   @id @default(cuid())
+  chave     String   @unique
+  valor     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Contract {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  fileUrl       String?
+  isSigned      Boolean   @default(false)
+  signedAt      DateTime?
+  createdAt     DateTime  @default(now())
+  deletedAt     DateTime?
+  updatedAt     DateTime  @updatedAt
+  isValidated   Boolean   @default(false)
+  validatedAt   DateTime?
+  validatedBy   String?
+  signedFileUrl String?
+  user          User      @relation(fields: [userId], references: [id])
+}
+
+model Lesson {
+  id        String    @id @default(cuid())
+  title     String
+  videoUrl  String
+  order     Int
+  duration  Int
+  isFree    Boolean   @default(false)
+  slug      String?   @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  unitId    String
+  turmaId   String?
+  turma     Turma?    @relation(fields: [turmaId], references: [id])
+  unit      Unit      @relation(fields: [unitId], references: [id])
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  email     String
+  pin       String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  userId         String        @unique
+  asaasInvoiceId String        @unique
+  value          Float
+  dueDate        DateTime
+  createdAt      DateTime      @default(now())
+  deletedAt      DateTime?
+  updatedAt      DateTime      @updatedAt
+  status         PaymentStatus @default(PENDING)
+  user           User          @relation(fields: [userId], references: [id])
+}
+
+model Prova {
+  id                        String           @id @default(cuid())
+  titulo                    String
+  descricao                 String?
+  dataInicioDisponibilidade DateTime
+  dataFimDisponibilidade    DateTime
+  tempoDuracaoMinutos       Int
+  percentualMinimoAprovacao Float            @default(86)
+  status                    ProvaStatus      @default(RASCUNHO)
+  createdAt                 DateTime         @default(now())
+  updatedAt                 DateTime         @updatedAt
+  deletedAt                 DateTime?
+  turmaId                   String?
+  turma                     Turma?           @relation(fields: [turmaId], references: [id])
+  perguntas                 ProvaPergunta[]
+  tentativas                ProvaTentativa[]
+  alunosAtribuidos          User[]           @relation("ProvaAlunosAtribuidos")
+
+  @@index([status])
+  @@index([turmaId])
+}
+
+model ProvaAlternativa {
+  id        String          @id @default(cuid())
+  perguntaId String
+  texto     String
+  correta   Boolean         @default(false)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  pergunta  ProvaPergunta   @relation(fields: [perguntaId], references: [id], onDelete: Cascade)
+  respostas ProvaResposta[]
+
+  @@index([perguntaId])
+}
+
+model ProvaEventoFraude {
+  id          String         @id @default(cuid())
+  tentativaId String
+  tipo        String
+  descricao   String
+  createdAt   DateTime       @default(now())
+  tentativa   ProvaTentativa @relation(fields: [tentativaId], references: [id], onDelete: Cascade)
+
+  @@index([tentativaId])
+}
+
+model ProvaPergunta {
+  id           String             @id @default(cuid())
+  provaId      String
+  enunciado    String
+  valorNota    Float
+  ordem        Int
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  alternativas ProvaAlternativa[]
+  prova        Prova              @relation(fields: [provaId], references: [id], onDelete: Cascade)
+  respostas    ProvaResposta[]
+
+  @@unique([provaId, ordem])
+  @@index([provaId])
+}
+
+model ProvaResposta {
+  id            String            @id @default(cuid())
+  tentativaId   String
+  perguntaId    String
+  alternativaId String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  alternativa   ProvaAlternativa? @relation(fields: [alternativaId], references: [id])
+  pergunta      ProvaPergunta     @relation(fields: [perguntaId], references: [id], onDelete: Cascade)
+  tentativa     ProvaTentativa    @relation(fields: [tentativaId], references: [id], onDelete: Cascade)
+
+  @@unique([tentativaId, perguntaId])
+}
+
+model ProvaTentativa {
+  id               String              @id @default(cuid())
+  provaId          String
+  alunoId          String
+  dataInicio       DateTime            @default(now())
+  dataFim          DateTime?
+  status           TentativaStatus     @default(EM_ANDAMENTO)
+  fraudeDetectada  Boolean             @default(false)
+  motivoFraude     String?
+  notaTotal        Float               @default(0)
+  notaObtida       Float               @default(0)
+  percentualAcerto Float               @default(0)
+  aprovado         Boolean             @default(false)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  eventosfraude    ProvaEventoFraude[]
+  respostas        ProvaResposta[]
+  aluno            User                @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  prova            Prova               @relation(fields: [provaId], references: [id], onDelete: Cascade)
+
+  @@unique([provaId, alunoId])
+  @@index([alunoId])
 }
 
 model Turma {
-  id         String      @id @default(cuid())
-  nome       String
-  descricao  String?
-  status     TurmaStatus @default(ATIVA)
+  id        String      @id @default(cuid())
+  nome      String
+  descricao String?
+  status    TurmaStatus @default(ATIVA)
   dataInicio DateTime
-  dataFim    DateTime?
-  alunos     User[]
-  lessons    Lesson[]
-  units      Unit[]
-  provas     Prova[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  deletedAt  DateTime?
+  dataFim   DateTime?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
+  lessons   Lesson[]
+  provas    Prova[]
+  units     Unit[]
+  alunos    User[]
+}
+
+model Unit {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  order       Int
+  slug        String?   @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  turmaId     String?
+  lessons     Lesson[]
+  turma       Turma?    @relation(fields: [turmaId], references: [id])
 }
 
 model User {
@@ -46,51 +227,28 @@ model User {
   cpf             String           @unique
   birthDate       DateTime
   educationLevel  String
-  contract        Contract?
-  payment         Payment?
-  address         Address?
-  role            String           @default("student") // student | admin
-  asaasCustomerId String?          @unique
-  paymentDeferred Boolean          @default(false) // pagamento postergado (bolsista, etc)
-  turmaId         String?
-  turma           Turma?           @relation(fields: [turmaId], references: [id])
-  ativo           Boolean          @default(true) // false = sem acesso às aulas
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   deletedAt       DateTime?
-  provaTentativas  ProvaTentativa[]
-  provasAtribuidas Prova[]          @relation("ProvaAlunosAtribuidos")
+  role            String           @default("student")
+  asaasCustomerId String?          @unique
+  paymentDeferred Boolean          @default(false)
+  turmaId         String?
+  ativo           Boolean          @default(true)
+  address         Address?
+  contract        Contract?
+  payment         Payment?
+  provaTentativas ProvaTentativa[]
+  turma           Turma?           @relation(fields: [turmaId], references: [id])
+  provas          Prova[]          @relation("ProvaAlunosAtribuidos")
 }
 
-model Address {
-  id           String   @id @default(uuid())
-  userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id])
-  zipCode      String
-  state        String
-  city         String
-  neighborhood String
-  street       String
-  number       String
-  complement   String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-model Contract {
-  id            String    @id @default(cuid())
-  user          User      @relation(fields: [userId], references: [id])
-  userId        String    @unique
-  fileUrl       String?
-  signedFileUrl String? // contrato assinado pelo aluno
-  isSigned      Boolean   @default(false)
-  isValidated   Boolean   @default(false)
-  validatedAt   DateTime?
-  validatedBy   String? // ID do admin (opcional)
-  signedAt      DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
+model WebhookEvent {
+  id        String   @id @default(cuid())
+  eventId   String   @unique
+  eventType String
+  payload   Json
+  createdAt DateTime @default(now())
 }
 
 enum PaymentStatus {
@@ -98,68 +256,6 @@ enum PaymentStatus {
   PAID
   FAILED
   CANCELLED
-}
-
-model Payment {
-  id             String        @id @default(cuid())
-  user           User          @relation(fields: [userId], references: [id])
-  userId         String        @unique
-  asaasInvoiceId String        @unique
-  status         PaymentStatus @default(PENDING)
-
-  value     Float
-  dueDate   DateTime
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-}
-
-model Unit {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  order       Int
-  slug        String?   @unique
-  lessons     Lesson[]
-  turmaId     String?
-  turma       Turma?    @relation(fields: [turmaId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
-}
-
-model Lesson {
-  id        String    @id @default(cuid())
-  title     String
-  videoUrl  String
-  order     Int
-  duration  Int // em segundos
-  isFree    Boolean   @default(false)
-  slug      String?   @unique
-  unit      Unit      @relation(fields: [unitId], references: [id])
-  unitId    String
-  turmaId   String?
-  turma     Turma?    @relation(fields: [turmaId], references: [id])
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-}
-
-model WebhookEvent {
-  id        String   @id @default(cuid())
-  eventId   String   @unique // ID único do evento Asaas
-  eventType String // Tipo: PAYMENT_RECEIVED, etc.
-  payload   Json // Payload completo para auditoria
-  createdAt DateTime @default(now())
-}
-
-model PasswordReset {
-  id        String   @id @default(cuid())
-  email     String
-  pin       String
-  expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
 }
 
 enum ProvaStatus {
@@ -177,102 +273,7 @@ enum TentativaStatus {
   EXPIRADA
 }
 
-model Prova {
-  id                        String           @id @default(cuid())
-  titulo                    String
-  descricao                 String?
-  turmaId                   String?
-  turma                     Turma?           @relation(fields: [turmaId], references: [id])
-  dataInicioDisponibilidade DateTime
-  dataFimDisponibilidade    DateTime
-  tempoDuracaoMinutos       Int
-  percentualMinimoAprovacao Float            @default(86)
-  status                    ProvaStatus      @default(RASCUNHO)
-  perguntas                 ProvaPergunta[]
-  tentativas                ProvaTentativa[]
-  alunosAtribuidos          User[]           @relation("ProvaAlunosAtribuidos")
-  createdAt                 DateTime         @default(now())
-  updatedAt                 DateTime         @updatedAt
-  deletedAt                 DateTime?
-
-  @@index([status])
-  @@index([turmaId])
-}
-
-model ProvaPergunta {
-  id           String             @id @default(cuid())
-  prova        Prova              @relation(fields: [provaId], references: [id], onDelete: Cascade)
-  provaId      String
-  enunciado    String
-  valorNota    Float
-  ordem        Int
-  alternativas ProvaAlternativa[]
-  respostas    ProvaResposta[]
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-
-  @@unique([provaId, ordem])
-  @@index([provaId])
-}
-
-model ProvaAlternativa {
-  id         String          @id @default(cuid())
-  pergunta   ProvaPergunta   @relation(fields: [perguntaId], references: [id], onDelete: Cascade)
-  perguntaId String
-  texto      String
-  correta    Boolean         @default(false)
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-  respostas  ProvaResposta[]
-
-  @@index([perguntaId])
-}
-
-model ProvaTentativa {
-  id               String              @id @default(cuid())
-  prova            Prova               @relation(fields: [provaId], references: [id], onDelete: Cascade)
-  provaId          String
-  aluno            User                @relation(fields: [alunoId], references: [id], onDelete: Cascade)
-  alunoId          String
-  dataInicio       DateTime            @default(now())
-  dataFim          DateTime?
-  status           TentativaStatus     @default(EM_ANDAMENTO)
-  fraudeDetectada  Boolean             @default(false)
-  motivoFraude     String?
-  notaTotal        Float               @default(0)
-  notaObtida       Float               @default(0)
-  percentualAcerto Float               @default(0)
-  aprovado         Boolean             @default(false)
-  respostas        ProvaResposta[]
-  eventosFraude    ProvaEventoFraude[]
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
-
-  @@unique([provaId, alunoId])
-  @@index([alunoId])
-}
-
-model ProvaResposta {
-  id            String            @id @default(cuid())
-  tentativa     ProvaTentativa    @relation(fields: [tentativaId], references: [id], onDelete: Cascade)
-  tentativaId   String
-  pergunta      ProvaPergunta     @relation(fields: [perguntaId], references: [id], onDelete: Cascade)
-  perguntaId    String
-  alternativa   ProvaAlternativa? @relation(fields: [alternativaId], references: [id], onDelete: SetNull)
-  alternativaId String?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-
-  @@unique([tentativaId, perguntaId])
-}
-
-model ProvaEventoFraude {
-  id          String         @id @default(cuid())
-  tentativa   ProvaTentativa @relation(fields: [tentativaId], references: [id], onDelete: Cascade)
-  tentativaId String
-  tipo        String
-  descricao   String
-  createdAt   DateTime       @default(now())
-
-  @@index([tentativaId])
+enum TurmaStatus {
+  ATIVA
+  ENCERRADA
 }
