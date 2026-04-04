@@ -36,8 +36,12 @@ type Aluno = {
   firstName: string;
   lastName: string;
   email: string;
+  cpf?: string;
+  birthDate?: string;
+  address?: { city?: string; state?: string };
   certificadoEmitido?: boolean;
   certificadoEm?: string;
+  certificadoId?: string;
 };
 
 export default function CertificadosBackofficePage() {
@@ -88,14 +92,24 @@ export default function CertificadosBackofficePage() {
             : []
         );
 
+        const certsIdMap = new Map<string, string>(
+          Array.isArray(certsData)
+            ? certsData.map((c: any) => [c.alunoId, c.id])
+            : []
+        );
+
         const lista: Aluno[] = Array.isArray(alunosData)
           ? alunosData.map((a: any) => ({
               id: a.id,
               firstName: a.firstName,
               lastName: a.lastName,
               email: a.email,
+              cpf: a.cpf,
+              birthDate: a.birthDate,
+              address: a.address,
               certificadoEmitido: certsMap.has(a.id),
               certificadoEm: certsMap.get(a.id),
+              certificadoId: certsIdMap.get(a.id),
             }))
           : [];
 
@@ -162,8 +176,14 @@ export default function CertificadosBackofficePage() {
     if (!turmaSelecionada) return;
     gerarCertificadoPDF({
       nomeAluno: `${aluno.firstName} ${aluno.lastName}`,
+      cpf: aluno.cpf,
+      email: aluno.email,
+      dataNascimento: aluno.birthDate,
+      cidade: aluno.address?.city,
+      estado: aluno.address?.state,
       nomeTurma: turmaSelecionada.nome,
       emitidoEm: aluno.certificadoEm || new Date().toISOString(),
+      certificadoId: aluno.certificadoId,
     });
   };
 

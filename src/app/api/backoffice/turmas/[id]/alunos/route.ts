@@ -20,7 +20,16 @@ export async function GET(
   try {
     const alunos = await prisma.user.findMany({
       where: { turmaId, deletedAt: null, role: "student" },
-      select: { id: true, firstName: true, lastName: true, email: true, ativo: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        ativo: true,
+        cpf: true,
+        birthDate: true,
+        address: { select: { city: true, state: true } },
+      },
       orderBy: { firstName: "asc" },
     });
 

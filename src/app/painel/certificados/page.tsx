@@ -57,8 +57,14 @@ export default function MeusCertificadosPage() {
     if (!session?.user) return;
     gerarCertificadoPDF({
       nomeAluno: session.user.name,
+      cpf: session.user.cpf,
+      email: session.user.email,
+      dataNascimento: session.user.birthDate,
+      cidade: session.user.cidade,
+      estado: session.user.estado,
       nomeTurma: cert.turma.nome,
       emitidoEm: cert.emitidoEm,
+      certificadoId: cert.id,
     });
   };
 

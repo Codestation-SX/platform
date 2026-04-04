@@ -65,6 +65,9 @@ const authOptions = NextAuth({
         session.user.address = token.address;
         session.user.asaasCustomerId = token.asaasCustomerId;
         session.user.cpf = token.cpf as string;
+        session.user.birthDate = token.birthDate as string;
+        session.user.cidade = token.cidade as string;
+        session.user.estado = token.estado as string;
       }
       return session;
     },
@@ -99,6 +102,9 @@ const authOptions = NextAuth({
           zipCode: userData?.address?.zipCode ?? "",
         };
         token.cpf = userData?.cpf ?? "";
+        token.birthDate = userData?.birthDate?.toISOString() ?? "";
+        token.cidade = userData?.address?.city ?? "";
+        token.estado = userData?.address?.state ?? "";
       }
 
       return token;

@@ -16,6 +16,9 @@ declare module "next-auth" {
       payment: {
         status: keyof typeof STATUS_PAYMENT;
       };
+      birthDate: string;
+      cidade: string;
+      estado: string;
       address: {
         zipCode: string;
         number: string;
@@ -45,6 +48,9 @@ declare module "next-auth/jwt" {
     role: "admin" | "student";
     asaasCustomerId: string;
     cpf: string;
+    birthDate: string;
+    cidade: string;
+    estado: string;
     paymentDeferred: boolean;
     contract: {
       isSigned: boolean;
