@@ -21,6 +21,8 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { handleApiClientError } from "@/utils/handleApiClientError";
 import { useToast } from "@/components/hooks/useToast";
+import CircularProgress from "@mui/material/CircularProgress";
+import InputAdornment from "@mui/material/InputAdornment";
 
 const educationLevels = [
   { value: "NONE", label: "Sem escolaridade" },
@@ -68,10 +70,15 @@ export default function MatriculaModal({
   const [apiError, setApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const [cepLoading, setCepLoading] = useState(false);
+
   const {
     control,
     handleSubmit,
     reset,
+    setValue,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<MatriculaFormData>({
     resolver: zodResolver(matriculaSchema),
@@ -109,6 +116,32 @@ export default function MatriculaModal({
       setApiError(handleApiClientError(error));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const buscarCep = async (cep: string) => {
+    const cepLimpo = cep.replace(/\D/g, "");
+    if (cepLimpo.length !== 8) return;
+
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const data = await res.json();
+
+      if (data.erro) {
+        setError("address.zipCode", { message: "CEP não encontrado" });
+        return;
+      }
+
+      clearErrors("address.zipCode");
+      setValue("address.street", data.logradouro || "", { shouldValidate: true });
+      setValue("address.neighborhood", data.bairro || "", { shouldValidate: true });
+      setValue("address.city", data.localidade || "", { shouldValidate: true });
+      setValue("address.state", data.uf || "", { shouldValidate: true });
+    } catch {
+      setError("address.zipCode", { message: "Erro ao buscar CEP" });
+    } finally {
+      setCepLoading(false);
     }
   };
 
@@ -235,9 +268,40 @@ export default function MatriculaModal({
           Endereço
         </Typography>
         <Grid container spacing={2} mt={1}>
+          {/* CEP com busca automática */}
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <FormControl fullWidth>
+              <FormLabel>CEP</FormLabel>
+              <Controller
+                name="address.zipCode"
+                control={control}
+                render={({ field, fieldState: { error } }) => (
+                  <TextField
+                    {...field}
+                    error={!!error?.message}
+                    helperText={error?.message ?? "Digite o CEP para preencher automaticamente"}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      buscarCep(e.target.value);
+                    }}
+                    slotProps={{
+                      input: {
+                        endAdornment: cepLoading ? (
+                          <InputAdornment position="end">
+                            <CircularProgress size={18} />
+                          </InputAdornment>
+                        ) : undefined,
+                      },
+                    }}
+                  />
+                )}
+              />
+            </FormControl>
+          </Grid>
+
+          {/* Demais campos de endereço */}
           {(
             [
-              ["zipCode", "CEP"],
               ["state", "Estado"],
               ["city", "Cidade"],
               ["neighborhood", "Bairro"],
