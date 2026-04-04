@@ -3,7 +3,6 @@ import useSWR from "swr";
 import { api } from "@/lib/api";
 import ReactPlayer from "react-player";
 import { Box, CircularProgress, Grid, Typography } from "@mui/material";
-import TabsLesson from "@/components/pages/Lessons/components/TabsLesson";
 import AccordionLesson from "@/components/pages/Lessons/components/AccordionLesson";
 import { LessonModules } from "@/types/lesson";
 import { useState } from "react";
@@ -80,7 +79,6 @@ export default function Aulas() {
             Nenhuma aula disponível.
           </Typography>
         )}
-        <TabsLesson lessonModules={data} onSelectLesson={handleSelectLesson} />
       </Grid>
       <Grid size="grow" sx={{ display: { xs: "none", md: "block" } }}>
         <AccordionLesson
