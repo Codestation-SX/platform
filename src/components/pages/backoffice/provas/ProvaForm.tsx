@@ -567,23 +567,9 @@ export default function ProvaForm({
           <Card>
             <CardContent>
               <Stack spacing={3}>
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
-                  <Typography variant="h6" fontWeight={700}>
-                    Perguntas
-                  </Typography>
-
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => appendPergunta(createPergunta(perguntas.length + 1))}
-                  >
-                    Adicionar pergunta
-                  </Button>
-                </Stack>
+                <Typography variant="h6" fontWeight={700}>
+                  Perguntas
+                </Typography>
 
                 {perguntas.map((pergunta, perguntaIndex) => (
                   <PerguntaCard
@@ -598,6 +584,14 @@ export default function ProvaForm({
                     onRemovePergunta={removePergunta}
                   />
                 ))}
+
+                <Button
+                  variant="outlined"
+                  startIcon={<AddIcon />}
+                  onClick={() => appendPergunta(createPergunta(perguntas.length + 1))}
+                >
+                  Adicionar pergunta
+                </Button>
               </Stack>
             </CardContent>
           </Card>
