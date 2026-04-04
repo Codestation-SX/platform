@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -317,6 +317,8 @@ export default function ProvaForm({
     },
   });
 
+  const addPerguntaRef = useRef<HTMLButtonElement>(null);
+
   const {
     fields: perguntas,
     append: appendPergunta,
@@ -325,6 +327,13 @@ export default function ProvaForm({
     control,
     name: "perguntas",
   });
+
+  const handleAddPergunta = () => {
+    appendPergunta(createPergunta(perguntas.length + 1));
+    setTimeout(() => {
+      addPerguntaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
+  };
 
   const onSubmit = async (data: ProvaFormValues) => {
     setErro("");
@@ -586,9 +595,10 @@ export default function ProvaForm({
                 ))}
 
                 <Button
+                  ref={addPerguntaRef}
                   variant="outlined"
                   startIcon={<AddIcon />}
-                  onClick={() => appendPergunta(createPergunta(perguntas.length + 1))}
+                  onClick={handleAddPergunta}
                 >
                   Adicionar pergunta
                 </Button>
