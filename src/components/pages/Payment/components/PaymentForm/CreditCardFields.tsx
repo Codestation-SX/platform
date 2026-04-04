@@ -89,7 +89,7 @@ export function CreditCardFields({
           )}
         />
         <FormHelperText>
-          {errors.holderCpf?.message ?? "Informe o CPF de quem paga (pode ser de pai, mãe ou familiar)"}
+          {errors.holderCpf?.message ?? "Insira o CPF do responsável pelo cartão de crédito"}
         </FormHelperText>
       </FormControl>
 
