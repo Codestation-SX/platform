@@ -62,9 +62,9 @@ const authOptions = NextAuth({
         session.user.role = token.role as "admin" | "student";
         session.user.contract = token.contract;
         session.user.payment = token.payment;
-        (session.user.address = token.address),
-          (session.user.asaasCustomerId = token.asaasCustomerId);
-        session.user.cpf;
+        session.user.address = token.address;
+        session.user.asaasCustomerId = token.asaasCustomerId;
+        session.user.cpf = token.cpf as string;
       }
       return session;
     },
