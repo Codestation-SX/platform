@@ -23,6 +23,7 @@ export const registerSchema = z
     cpf: z.string().regex(cpfRegex, "CPF inválido"),
     birthDate: z.date({ required_error: "Data de nascimento obrigatória" }),
     educationLevel: z.string().min(1, "Escolaridade obrigatória"),
+    phone: z.string().min(1, "Telefone é obrigatório"),
     email: z.string().email("E-mail inválido"),
     password: z.string().min(6, "Mínimo 6 caracteres"),
     confirmPassword: z.string().min(6, "Mínimo 6 caracteres"),

@@ -13,6 +13,7 @@ import { Controller, Control, useWatch } from "react-hook-form";
 import { PaymentFormValues } from "./paymentSchema";
 import { getCardBrand } from "@/lib/getCardBrand";
 import { formatCardNumber } from "@/lib/formatCardNumber";
+import CardBrandIcon from "./CardBrandIcon";
 
 export function CreditCardFields({
   control,
@@ -30,9 +31,7 @@ export function CreditCardFields({
     <Stack spacing={2}>
       {/* Número do cartão */}
       <FormControl error={!!errors.cardNumber}>
-        <FormLabel>
-          Número do cartão {brand && <strong>({brand})</strong>}
-        </FormLabel>
+        <FormLabel>Número do cartão</FormLabel>
         <Controller
           name="cardNumber"
           control={control}
@@ -42,6 +41,7 @@ export function CreditCardFields({
               placeholder="0000 0000 0000 0000"
               size="small"
               onChange={(e) => field.onChange(formatCardNumber(e.target.value))}
+              endAdornment={<CardBrandIcon brand={brand} />}
             />
           )}
         />

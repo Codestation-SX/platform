@@ -45,6 +45,7 @@ declare module "next-auth/jwt" {
     role: "admin" | "student";
     asaasCustomerId: string;
     cpf: string;
+    paymentDeferred: boolean;
     contract: {
       isSigned: boolean;
       isValidated: boolean;

@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
       cpf: true,
       birthDate: true,
       educationLevel: true,
+      phone: true,
       createdAt: true,
       address: {
         select: {

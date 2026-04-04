@@ -35,6 +35,7 @@ type Aluno = {
   cpf: string;
   birthDate: string;
   educationLevel: string;
+  phone: string | null;
   createdAt: string;
   address: {
     zipCode: string;
@@ -138,6 +139,12 @@ export default function MatriculasPendentesPage() {
                         <Typography variant="body2" color="text.secondary">Escolaridade</Typography>
                         <Typography>{educationLabels[aluno.educationLevel] ?? aluno.educationLevel}</Typography>
                       </Box>
+                      {aluno.phone && (
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">Telefone</Typography>
+                          <Typography>{aluno.phone}</Typography>
+                        </Box>
+                      )}
                       <Box>
                         <Typography variant="body2" color="text.secondary">Cadastrado em</Typography>
                         <Typography>

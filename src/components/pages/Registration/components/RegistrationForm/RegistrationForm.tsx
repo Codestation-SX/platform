@@ -62,6 +62,7 @@ export default function RegisterForm() {
         cpf: "",
         birthDate: undefined,
         educationLevel: "",
+        phone: "",
         email: "",
         password: "",
         confirmPassword: "",
@@ -239,6 +240,25 @@ export default function RegisterForm() {
           </Typography>
 
           <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <FormControl fullWidth>
+                <FormLabel>Telefone</FormLabel>
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field, fieldState: { error } }) => (
+                    <TextField
+                      {...field}
+                      type="tel"
+                      fullWidth
+                      value={field.value ?? ""}
+                      error={!!error?.message}
+                      helperText={error?.message}
+                    />
+                  )}
+                />
+              </FormControl>
+            </Grid>
             {["email", "password", "confirmPassword"].map((name) => (
               <Grid key={name} size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>

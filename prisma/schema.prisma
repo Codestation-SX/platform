@@ -187,20 +187,36 @@ model ProvaTentativa {
   @@index([alunoId])
 }
 
+model Certificado {
+  id         String   @id @default(cuid())
+  alunoId    String
+  turmaId    String
+  emitidoEm  DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  aluno      User     @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  turma      Turma    @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+
+  @@unique([alunoId, turmaId])
+  @@index([alunoId])
+  @@index([turmaId])
+}
+
 model Turma {
-  id        String      @id @default(cuid())
-  nome      String
-  descricao String?
-  status    TurmaStatus @default(ATIVA)
-  dataInicio DateTime
-  dataFim   DateTime?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  deletedAt DateTime?
-  lessons   Lesson[]
-  provas    Prova[]
-  units     Unit[]
-  alunos    User[]
+  id           String         @id @default(cuid())
+  nome         String
+  descricao    String?
+  status       TurmaStatus    @default(ATIVA)
+  dataInicio   DateTime
+  dataFim      DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
+  certificados Certificado[]
+  lessons      Lesson[]
+  provas       Prova[]
+  units        Unit[]
+  alunos       User[]
 }
 
 model Unit {
@@ -227,6 +243,7 @@ model User {
   cpf             String           @unique
   birthDate       DateTime
   educationLevel  String
+  phone           String?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   deletedAt       DateTime?
@@ -236,6 +253,7 @@ model User {
   turmaId         String?
   ativo           Boolean          @default(true)
   address         Address?
+  certificados    Certificado[]
   contract        Contract?
   payment         Payment?
   provaTentativas ProvaTentativa[]

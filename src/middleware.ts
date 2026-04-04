@@ -37,10 +37,11 @@ export default withAuth(
 
       // Aluno sem pagamento confirmado só acessa /painel/pagamento
       const pagamentoConfirmado = (token as any).payment?.status === "PAID";
+      const pagamentoIsento = (token as any).paymentDeferred === true;
       const isAdmin = token.role === "admin";
       const isPaginaPagamento = pathname.startsWith("/painel/pagamento");
 
-      if (!isAdmin && !pagamentoConfirmado && !isPaginaPagamento) {
+      if (!isAdmin && !pagamentoConfirmado && !pagamentoIsento && !isPaginaPagamento) {
         return NextResponse.redirect(new URL("/painel/pagamento", req.url));
       }
     }

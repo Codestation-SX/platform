@@ -17,7 +17,7 @@ export default function Hero() {
         width: "100%",
         minHeight: "100vh",
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-start",
         backgroundImage:
           "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(99,179,237,0.08) 0%, transparent 70%)",
       }}
@@ -27,14 +27,14 @@ export default function Hero() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          pt: { xs: 16, sm: 20 },
-          pb: { xs: 10, sm: 14 },
+          pt: { xs: 14, sm: 18 },
+          pb: { xs: 6, sm: 8 },
         }}
       >
         <Stack
           spacing={3}
           useFlexGap
-          sx={{ alignItems: "center", width: { xs: "100%", sm: "80%", md: "65%" } }}
+          sx={{ alignItems: "center", width: { xs: "100%", sm: "80%", md: "65%" }, overflow: "visible", pb: 2 }}
         >
           <Chip
             icon={<TerminalIcon sx={{ fontSize: "0.875rem !important" }} />}
@@ -44,29 +44,34 @@ export default function Hero() {
             sx={{ fontFamily: "var(--font-jetbrains, monospace)", letterSpacing: "1px" }}
           />
 
-          <Typography
-            variant="h1"
-            sx={{
-              textAlign: "center",
-              fontSize: { xs: "1.5rem", sm: "2rem", md: "2.4rem" },
-              fontFamily: "var(--font-syne, sans-serif)",
-              fontWeight: 800,
-              lineHeight: 1.15,
-              color: "text.primary",
-            }}
-          >
-            Aprenda{" "}
-            <Box
-              component="span"
+          <Box sx={{ width: "100%", overflow: "visible", paddingBottom: "20px" }}>
+            <Typography
+              variant="h1"
+              component="div"
               sx={{
-                color: "primary.main",
-                textShadow: "0 0 40px rgba(99,179,237,0.35)",
+                textAlign: "center",
+                fontSize: { xs: "1.5rem", sm: "2rem", md: "2.4rem" },
+                fontFamily: "var(--font-syne, sans-serif)",
+                fontWeight: 700,
+                lineHeight: "1.6",
+                color: "text.primary",
+                overflow: "visible",
+                paddingBottom: "0.3em",
               }}
             >
-              QA
-            </Box>{" "}
-            na prática e entre para o mercado de tecnologia
-          </Typography>
+              Aprenda{" "}
+              <Box
+                component="span"
+                sx={{
+                  color: "primary.main",
+                  textShadow: "0 0 40px rgba(99,179,237,0.35)",
+                }}
+              >
+                QA
+              </Box>{" "}
+              na prática e entre para o mercado de tecnologia
+            </Typography>
+          </Box>
 
           <Typography
             variant="body1"

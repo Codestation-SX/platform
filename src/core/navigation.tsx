@@ -12,6 +12,8 @@ import GroupsIcon from "@mui/icons-material/Groups";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import SettingsIcon from "@mui/icons-material/Settings";
+import SchoolIcon from "@mui/icons-material/School";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 
 export const NAVIGATION_BACKOFFICE: Navigation = [
   {
@@ -28,6 +30,11 @@ export const NAVIGATION_BACKOFFICE: Navigation = [
     segment: "backoffice/users",
     title: "Usuários",
     icon: <PersonIcon />,
+  },
+  {
+    segment: "backoffice/matriculas",
+    title: "Matrículas Admin",
+    icon: <SchoolIcon />,
   },
   {
     segment: "backoffice/turmas",
@@ -84,6 +91,11 @@ export const NAVIGATION_BACKOFFICE: Navigation = [
     title: "Notas",
     icon: <GradeIcon />,
   },
+  {
+    segment: "backoffice/certificados",
+    title: "Certificados",
+    icon: <WorkspacePremiumIcon />,
+  },
 ];
 
 export const NAVIGATION_STUDENT: Navigation = [
@@ -105,5 +117,10 @@ export const NAVIGATION_STUDENT: Navigation = [
     segment: "painel/notas",
     title: "Minhas notas",
     icon: <GradeIcon />,
+  },
+  {
+    segment: "painel/certificados",
+    title: "Meu Certificado",
+    icon: <WorkspacePremiumIcon />,
   },
 ];

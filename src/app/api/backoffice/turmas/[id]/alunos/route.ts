@@ -7,6 +7,32 @@ async function assertAdmin(req: NextRequest) {
   return !!(token && token.role === "admin");
 }
 
+// Listar alunos da turma
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  if (!(await assertAdmin(req)))
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+
+  const { id: turmaId } = await context.params;
+
+  try {
+    const alunos = await prisma.user.findMany({
+      where: { turmaId, deletedAt: null, role: "student" },
+      select: { id: true, firstName: true, lastName: true, email: true, ativo: true },
+      orderBy: { firstName: "asc" },
+    });
+
+    return NextResponse.json(alunos);
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || "Erro ao listar alunos" },
+      { status: 500 }
+    );
+  }
+}
+
 // Vincular aluno à turma
 export async function POST(
   req: NextRequest,

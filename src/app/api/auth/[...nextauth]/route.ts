@@ -92,6 +92,7 @@ const authOptions = NextAuth({
             (userData?.payment?.status as keyof typeof STATUS_PAYMENT) ||
             "PENDING",
         };
+        token.paymentDeferred = userData?.paymentDeferred ?? false;
         token.asaasCustomerId = userData?.asaasCustomerId as string;
         token.address = {
           number: userData?.address?.number ?? "",
