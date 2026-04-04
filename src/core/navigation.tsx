@@ -3,7 +3,6 @@ import BookIcon from "@mui/icons-material/Book";
 import PersonIcon from "@mui/icons-material/Person";
 import ViewModule from "@mui/icons-material/ViewModule";
 import PlayLessonIcon from "@mui/icons-material/PlayLesson";
-import GavelIcon from "@mui/icons-material/Gavel";
 import PaymentIcon from "@mui/icons-material/Payment";
 import HistoryEduIcon from "@mui/icons-material/HistoryEdu";
 import QuizIcon from "@mui/icons-material/Quiz";
@@ -55,11 +54,6 @@ export const NAVIGATION_BACKOFFICE: Navigation = [
   {
     kind: "header",
     title: "Financeiro",
-  },
-  {
-    segment: "backoffice/contracts",
-    title: "Contratos",
-    icon: <GavelIcon />,
   },
   {
     segment: "backoffice/payments",
