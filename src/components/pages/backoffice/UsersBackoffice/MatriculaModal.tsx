@@ -112,8 +112,13 @@ export default function MatriculaModal({
       success("Aluno matriculado com sucesso!");
       reset();
       onSaved();
-    } catch (error) {
-      setApiError(handleApiClientError(error));
+    } catch (err) {
+      const mensagem = handleApiClientError(err);
+      if (mensagem.toLowerCase().includes("e-mail") || mensagem.toLowerCase().includes("email")) {
+        setError("email", { message: mensagem });
+      } else {
+        setApiError(mensagem);
+      }
     } finally {
       setLoading(false);
     }

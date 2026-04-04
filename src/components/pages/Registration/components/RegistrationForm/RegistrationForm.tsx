@@ -131,7 +131,12 @@ export default function RegisterForm() {
       const mensagem =
         err?.response?.data?.error ||
         "Erro ao realizar cadastro. Tente novamente.";
-      error(mensagem);
+
+      if (mensagem.toLowerCase().includes("e-mail") || mensagem.toLowerCase().includes("email")) {
+        setError("email", { message: mensagem });
+      } else {
+        error(mensagem);
+      }
     }
   };
 
