@@ -65,6 +65,34 @@ export function CreditCardFields({
         <FormHelperText>{errors.cardName?.message}</FormHelperText>
       </FormControl>
 
+      {/* CPF do titular do cartão */}
+      <FormControl error={!!errors.holderCpf}>
+        <FormLabel>CPF do titular do cartão</FormLabel>
+        <Controller
+          name="holderCpf"
+          control={control}
+          render={({ field }) => (
+            <OutlinedInput
+              {...field}
+              placeholder="000.000.000-00"
+              size="small"
+              inputProps={{ maxLength: 14 }}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
+                const masked = digits
+                  .replace(/(\d{3})(\d)/, "$1.$2")
+                  .replace(/(\d{3})(\d)/, "$1.$2")
+                  .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+                field.onChange(masked);
+              }}
+            />
+          )}
+        />
+        <FormHelperText>
+          {errors.holderCpf?.message ?? "Informe o CPF de quem paga (pode ser de pai, mãe ou familiar)"}
+        </FormHelperText>
+      </FormControl>
+
       <Box display="flex" gap={2}>
         {/* Validade */}
         <FormControl error={!!errors.expirationDate} sx={{ flex: 1 }}>

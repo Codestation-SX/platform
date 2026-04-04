@@ -39,6 +39,7 @@ export default function PaymentForm() {
       paymentType: "CREDIT_CARD",
       cardNumber: "",
       cardName: "",
+      holderCpf: "",
       expirationDate: "",
       cvv: "",
       installments: "",
@@ -80,9 +81,9 @@ export default function PaymentForm() {
         ccv: formData.cvv!,
       };
 
-      const cpf = session?.user.cpf?.replace(/\D/g, "") || "";
-      if (!cpf || cpf === "00000000000") {
-        setSubmitError("CPF inválido. Verifique seus dados cadastrais.");
+      const cpf = formData.holderCpf?.replace(/\D/g, "") || "";
+      if (!cpf || cpf.length !== 11) {
+        setSubmitError("CPF do titular do cartão inválido.");
         setSubmitting(false);
         return;
       }
