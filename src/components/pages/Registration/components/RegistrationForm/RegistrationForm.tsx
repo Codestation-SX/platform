@@ -13,11 +13,13 @@ import {
   FormHelperText,
   FormLabel,
   Grid,
+  IconButton,
   InputAdornment,
   MenuItem,
   TextField,
   Typography,
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { format } from "date-fns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import StyledContainer from "@/components/core/StyledContainer";
@@ -41,6 +43,8 @@ export default function RegisterForm() {
   const { success, error } = useToast();
   const router = useRouter();
   const [cepLoading, setCepLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const today = new Date();
   const minDate = new Date(
     today.getFullYear() - 90,
@@ -264,38 +268,50 @@ export default function RegisterForm() {
                 />
               </FormControl>
             </Grid>
-            {["email", "password", "confirmPassword"].map((name) => (
-              <Grid key={name} size={{ xs: 12, md: 6 }}>
-                <FormControl fullWidth>
-                  <FormLabel>
-                    {name === "email"
-                      ? "E-mail"
-                      : name === "password"
-                        ? "Senha"
-                        : "Confirmar senha"}
-                  </FormLabel>
-                  <Controller
-                    name={name as keyof RegisterFormData}
-                    control={control}
-                    render={({ field, fieldState: { error } }) => (
-                      <TextField
-                        {...field}
-                        type={
-                          name.includes("password") ||
-                          name.includes("confirmPassword")
-                            ? "password"
-                            : "text"
-                        }
-                        fullWidth
-                        value={field.value ?? ""}
-                        error={!!error?.message}
-                        helperText={error?.message}
-                      />
-                    )}
-                  />
-                </FormControl>
-              </Grid>
-            ))}
+            {["email", "password", "confirmPassword"].map((name) => {
+              const isPassword = name === "password";
+              const isConfirm = name === "confirmPassword";
+              const isPasswordField = isPassword || isConfirm;
+              const showValue = isPassword ? showPassword : showConfirmPassword;
+              const toggleShow = isPassword
+                ? () => setShowPassword((v) => !v)
+                : () => setShowConfirmPassword((v) => !v);
+
+              return (
+                <Grid key={name} size={{ xs: 12, md: 6 }}>
+                  <FormControl fullWidth>
+                    <FormLabel>
+                      {name === "email" ? "E-mail" : isPassword ? "Senha" : "Confirmar senha"}
+                    </FormLabel>
+                    <Controller
+                      name={name as keyof RegisterFormData}
+                      control={control}
+                      render={({ field, fieldState: { error } }) => (
+                        <TextField
+                          {...field}
+                          type={isPasswordField && !showValue ? "password" : "text"}
+                          fullWidth
+                          value={field.value ?? ""}
+                          error={!!error?.message}
+                          helperText={error?.message}
+                          slotProps={isPasswordField ? {
+                            input: {
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <IconButton onClick={toggleShow} edge="end" tabIndex={-1}>
+                                    {showValue ? <VisibilityOff /> : <Visibility />}
+                                  </IconButton>
+                                </InputAdornment>
+                              ),
+                            },
+                          } : undefined}
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
+              );
+            })}
           </Grid>
           <Divider sx={{ my: 2 }} />
           <Typography variant="h6" mt={4} mb={1}>

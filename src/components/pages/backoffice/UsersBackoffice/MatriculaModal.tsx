@@ -23,6 +23,8 @@ import { handleApiClientError } from "@/utils/handleApiClientError";
 import { useToast } from "@/components/hooks/useToast";
 import CircularProgress from "@mui/material/CircularProgress";
 import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 const educationLevels = [
   { value: "NONE", label: "Sem escolaridade" },
@@ -71,6 +73,7 @@ export default function MatriculaModal({
   const [loading, setLoading] = useState(false);
 
   const [cepLoading, setCepLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     control,
@@ -196,9 +199,20 @@ export default function MatriculaModal({
                     <TextField
                       {...field}
                       value={field.value || ""}
-                      type={type}
+                      type={type === "password" ? (showPassword ? "text" : "password") : type}
                       error={!!error?.message}
                       helperText={error?.message}
+                      slotProps={type === "password" ? {
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" tabIndex={-1}>
+                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        },
+                      } : undefined}
                     />
                   )}
                 />
