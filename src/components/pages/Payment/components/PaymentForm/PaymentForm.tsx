@@ -11,9 +11,11 @@ import { useEffect, useState } from "react";
 import PaymentSuccessModal from "./PaymentSuccessModal";
 import PixFields from "./PixFields";
 import { api } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function PaymentForm() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [paymentData, setPaymentData] = useState<any | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -134,6 +136,14 @@ export default function PaymentForm() {
               startIcon={submitting ? <CircularProgress size={18} color="inherit" /> : null}
             >
               {submitting ? "Processando..." : "Confirmar pagamento"}
+            </Button>
+            <Button
+              variant="outlined"
+              fullWidth
+              disabled={submitting}
+              onClick={() => router.back()}
+            >
+              Voltar
             </Button>
           </Stack>
         </form>
