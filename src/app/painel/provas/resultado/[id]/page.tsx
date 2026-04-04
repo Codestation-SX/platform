@@ -70,9 +70,9 @@ export default function ResultadoProvaPage() {
 
             <Button
               variant="contained"
-              onClick={() => router.push("/painel/provas")}
+              onClick={() => router.push("/painel/notas")}
             >
-              Voltar para provas
+              Minhas notas
             </Button>
 
           </Stack>
