@@ -94,6 +94,8 @@ export default function RealizarProvaPage() {
   const [finalizando, setFinalizando] = useState(false);
   const [tempoRestante, setTempoRestante] = useState<number | null>(null);
   const [motivoFraude, setMotivoFraude] = useState("");
+  const [tentouFinalizar, setTentouFinalizar] = useState(false);
+  const perguntaRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // ─── Iniciar prova ───────────────────────────────────────────────
   const iniciarProva = async () => {
@@ -287,6 +289,19 @@ useEffect(() => {
 
   const selecionarAlternativa = (perguntaId: string, alternativaId: string) => {
     setRespostas((prev) => ({ ...prev, [perguntaId]: alternativaId }));
+  };
+
+  const handleFinalizarClick = () => {
+    if (!prova) return;
+    const naoRespondidas = prova.perguntas.filter((p) => !respostas[p.id]);
+    if (naoRespondidas.length > 0) {
+      setTentouFinalizar(true);
+      const primeira = naoRespondidas[0];
+      const el = perguntaRefs.current[primeira.id];
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    finalizarProva(false);
   };
 
   // ─── TELA: Instruções ────────────────────────────────────────────
@@ -536,47 +551,60 @@ useEffect(() => {
         {sucesso && <Alert severity="success">{sucesso}</Alert>}
 
         <Stack spacing={2}>
-          {prova.perguntas.map((pergunta, index) => (
-            <Card key={pergunta.id}>
-              <CardContent>
-                <Stack spacing={2}>
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight={700}>
-                      Pergunta {index + 1}
-                    </Typography>
-                    <Typography sx={{ mt: 1 }}>{pergunta.enunciado}</Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: 1 }}
+          {prova.perguntas.map((pergunta, index) => {
+            const naoRespondida = tentouFinalizar && !respostas[pergunta.id];
+            return (
+              <Card
+                key={pergunta.id}
+                ref={(el) => { perguntaRefs.current[pergunta.id] = el; }}
+                sx={naoRespondida ? { borderColor: "error.main", borderWidth: 2, borderStyle: "solid" } : {}}
+              >
+                <CardContent>
+                  <Stack spacing={2}>
+                    <Box>
+                      <Typography variant="subtitle1" fontWeight={700}>
+                        Pergunta {index + 1}
+                      </Typography>
+                      <Typography sx={{ mt: 1 }}>{pergunta.enunciado}</Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mt: 1 }}
+                      >
+                        Valor: {pergunta.valorNota}
+                      </Typography>
+                    </Box>
+
+                    {naoRespondida && (
+                      <Alert severity="error">
+                        Esta pergunta precisa ser respondida antes de finalizar a prova.
+                      </Alert>
+                    )}
+
+                    <Divider />
+
+                    <RadioGroup
+                      value={respostas[pergunta.id] || ""}
+                      onChange={(e) => {
+                        selecionarAlternativa(pergunta.id, e.target.value);
+                      }}
                     >
-                      Valor: {pergunta.valorNota}
-                    </Typography>
-                  </Box>
-
-                  <Divider />
-
-                  <RadioGroup
-                    value={respostas[pergunta.id] || ""}
-                    onChange={(e) =>
-                      selecionarAlternativa(pergunta.id, e.target.value)
-                    }
-                  >
-                    <Stack spacing={1}>
-                      {pergunta.alternativas.map((alternativa) => (
-                        <FormControlLabel
-                          key={alternativa.id}
-                          value={alternativa.id}
-                          control={<Radio />}
-                          label={alternativa.texto}
-                        />
-                      ))}
-                    </Stack>
-                  </RadioGroup>
-                </Stack>
-              </CardContent>
-            </Card>
-          ))}
+                      <Stack spacing={1}>
+                        {pergunta.alternativas.map((alternativa) => (
+                          <FormControlLabel
+                            key={alternativa.id}
+                            value={alternativa.id}
+                            control={<Radio />}
+                            label={alternativa.texto}
+                          />
+                        ))}
+                      </Stack>
+                    </RadioGroup>
+                  </Stack>
+                </CardContent>
+              </Card>
+            );
+          })}
         </Stack>
 
         <Stack direction="row" justifyContent="flex-end" spacing={2}>
@@ -590,7 +618,7 @@ useEffect(() => {
 
           <Button
             variant="contained"
-            onClick={() => finalizarProva(false)}
+            onClick={handleFinalizarClick}
             disabled={finalizando}
           >
             {finalizando ? "Finalizando..." : "Finalizar prova"}
