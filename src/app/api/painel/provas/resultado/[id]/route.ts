@@ -77,6 +77,27 @@ export async function GET(req: Request, { params }: Params) {
     },
   });
 
+  const gabaritoPerguntas = perguntas.map((pergunta) => {
+    const respostaAluno = tentativa.respostas.find((r) => r.perguntaId === pergunta.id);
+    const alternativaCorreta = pergunta.alternativas.find((a) => a.correta);
+    const acertou =
+      !!alternativaCorreta && respostaAluno?.alternativaId === alternativaCorreta.id;
+
+    return {
+      id: pergunta.id,
+      enunciado: pergunta.enunciado,
+      ordem: pergunta.ordem,
+      valorNota: pergunta.valorNota,
+      acertou,
+      alternativas: pergunta.alternativas.map((a) => ({
+        id: a.id,
+        texto: a.texto,
+        correta: a.correta,
+        selecionada: respostaAluno?.alternativaId === a.id,
+      })),
+    };
+  });
+
   return NextResponse.json({
     provaTitulo: tentativa.prova.titulo,
     notaPercentual: percentualAcerto,
@@ -85,5 +106,6 @@ export async function GET(req: Request, { params }: Params) {
     totalAcertos,
     notaObtida,
     notaTotal,
+    perguntas: gabaritoPerguntas,
   });
 }
