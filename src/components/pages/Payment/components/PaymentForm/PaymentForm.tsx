@@ -80,11 +80,18 @@ export default function PaymentForm() {
         ccv: formData.cvv!,
       };
 
+      const cpf = session?.user.cpf?.replace(/\D/g, "") || "";
+      if (!cpf || cpf === "00000000000") {
+        setSubmitError("CPF inválido. Verifique seus dados cadastrais.");
+        setSubmitting(false);
+        return;
+      }
+
       payload.creditCardHolderInfo = {
         name: formData.cardName!,
-        email: session?.user.email || "sem@email.com",
-        cpfCnpj: session?.user.cpf || "00000000000",
-        postalCode: session?.user.address?.zipCode || "00000000",
+        email: session?.user.email || "",
+        cpfCnpj: cpf,
+        postalCode: (session?.user.address?.zipCode || "").replace(/\D/g, ""),
         addressNumber: session?.user.address?.number || "1",
       };
     }

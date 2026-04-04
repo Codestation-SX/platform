@@ -38,12 +38,15 @@ export async function createPayment(input: CreatePaymentInput) {
     creditCardHolderInfo,
   } = input;
 
+  // Asaas exige dueDate no formato YYYY-MM-DD
+  const dueDateFormatted = dueDate.substring(0, 10);
+
   // 1. Monta o body do pagamento
   const basePayload: any = {
     customer: customerId,
     billingType,
     value,
-    dueDate,
+    dueDate: dueDateFormatted,
   };
 
   // Cartão de crédito exige dados adicionais
