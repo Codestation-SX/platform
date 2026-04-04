@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -291,6 +291,8 @@ export default function NovaProvaPage() {
     },
   });
 
+  const addPerguntaRef = useRef<HTMLButtonElement>(null);
+
   const {
     fields: perguntas,
     append: appendPergunta,
@@ -299,6 +301,13 @@ export default function NovaProvaPage() {
     control,
     name: "perguntas",
   });
+
+  const handleAddPergunta = () => {
+    appendPergunta(createPergunta(perguntas.length + 1));
+    setTimeout(() => {
+      addPerguntaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
+  };
 
   const onSubmit = async (data: ProvaFormValues) => {
     setErro("");
@@ -525,23 +534,9 @@ export default function NovaProvaPage() {
             <Card>
               <CardContent>
                 <Stack spacing={3}>
-                  <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                  >
-                    <Typography variant="h6" fontWeight={700}>
-                      Perguntas
-                    </Typography>
-
-                    <Button
-                      variant="contained"
-                      startIcon={<AddIcon />}
-                      onClick={() => appendPergunta(createPergunta(perguntas.length + 1))}
-                    >
-                      Adicionar pergunta
-                    </Button>
-                  </Stack>
+                  <Typography variant="h6" fontWeight={700}>
+                    Perguntas
+                  </Typography>
 
                   {perguntas.map((pergunta, perguntaIndex) => (
                     <PerguntaCard
@@ -556,6 +551,15 @@ export default function NovaProvaPage() {
                       onRemovePergunta={removePergunta}
                     />
                   ))}
+
+                  <Button
+                    ref={addPerguntaRef}
+                    variant="outlined"
+                    startIcon={<AddIcon />}
+                    onClick={handleAddPergunta}
+                  >
+                    Adicionar pergunta
+                  </Button>
                 </Stack>
               </CardContent>
             </Card>
