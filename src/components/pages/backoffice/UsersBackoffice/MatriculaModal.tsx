@@ -284,7 +284,7 @@ export default function MatriculaModal({
                   <TextField
                     {...field}
                     error={!!error?.message}
-                    helperText={error?.message ?? "Digite o CEP para preencher automaticamente"}
+                    helperText={error?.message ?? "Digite seu CEP"}
                     onChange={(e) => {
                       field.onChange(e);
                       buscarCep(e.target.value);

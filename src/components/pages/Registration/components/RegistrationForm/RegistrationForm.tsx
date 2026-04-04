@@ -316,7 +316,7 @@ export default function RegisterForm() {
                       fullWidth
                       value={field.value ?? ""}
                       error={!!error?.message}
-                      helperText={error?.message ?? "Digite o CEP para preencher o endereço automaticamente"}
+                      helperText={error?.message ?? "Digite seu CEP"}
                       inputProps={{ maxLength: 8 }}
                       onBlur={(e) => {
                         field.onBlur();
