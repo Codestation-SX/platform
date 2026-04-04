@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   Alert,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -24,6 +25,8 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import SchoolIcon from "@mui/icons-material/School";
+import AddIcon from "@mui/icons-material/Add";
+import MatriculaModal from "@/components/pages/backoffice/UsersBackoffice/MatriculaModal";
 
 type Turma = { id: string; nome: string };
 
@@ -47,6 +50,7 @@ export default function MatriculasPage() {
   const [turmaId, setTurmaId] = useState("");
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
+  const [isMatriculaOpen, setIsMatriculaOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/backoffice/turmas")
@@ -97,15 +101,25 @@ export default function MatriculasPage() {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Stack spacing={3}>
         {/* Header */}
-        <Box>
-          <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>
-            <SchoolIcon color="primary" />
-            <Typography variant="h4" fontWeight={700}>Matrículas Admin</Typography>
-          </Stack>
-          <Typography color="text.secondary">
-            Alunos matriculados diretamente pelo backoffice, sem fluxo de pagamento.
-          </Typography>
-        </Box>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+          <Box>
+            <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>
+              <SchoolIcon color="primary" />
+              <Typography variant="h4" fontWeight={700}>Matrículas Admin</Typography>
+            </Stack>
+            <Typography color="text.secondary">
+              Alunos matriculados diretamente pelo backoffice, sem fluxo de pagamento.
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<AddIcon />}
+            onClick={() => setIsMatriculaOpen(true)}
+          >
+            Matricular Aluno
+          </Button>
+        </Stack>
 
         {/* Cards resumo */}
         {!loading && (
@@ -273,6 +287,15 @@ export default function MatriculasPage() {
           </TableContainer>
         )}
       </Stack>
+
+      <MatriculaModal
+        open={isMatriculaOpen}
+        onClose={() => setIsMatriculaOpen(false)}
+        onSaved={() => {
+          setIsMatriculaOpen(false);
+          carregar({ nome, turmaId, dataInicio, dataFim });
+        }}
+      />
     </Container>
   );
 }

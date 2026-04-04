@@ -6,7 +6,6 @@ import BackofficeTable, {
   PaginatedDataGridHandle,
 } from "@/components/core/PaginatedDataGrid";
 import UserModal from "./UserModal";
-import MatriculaModal from "./MatriculaModal";
 import { useRef, useState } from "react";
 import DeleteUserModal from "./DeleteUserModal";
 
@@ -16,7 +15,6 @@ export function UsersBackofficePage() {
   const [selectedId, setSelectedId] = useState<string>();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [isMatriculaOpen, setIsMatriculaOpen] = useState<boolean>(false);
   const [toggling, setToggling] = useState<string | null>(null);
 
   const handleToggleAtivo = async (id: string, ativo: boolean) => {
@@ -118,13 +116,6 @@ export function UsersBackofficePage() {
         </Typography>
         <Box display="flex" gap={1} mb={2}>
           <Button
-            onClick={() => setIsMatriculaOpen(true)}
-            variant="contained"
-            color="success"
-          >
-            Matricular Aluno
-          </Button>
-          <Button
             onClick={() => setIsOpen(true)}
             variant="outlined"
           >
@@ -134,15 +125,6 @@ export function UsersBackofficePage() {
       </Box>
 
       <BackofficeTable columns={columns} endpoint="/api/backoffice/users" ref={gridRef} />
-
-      <MatriculaModal
-        open={isMatriculaOpen}
-        onClose={() => setIsMatriculaOpen(false)}
-        onSaved={() => {
-          gridRef.current?.refetch();
-          setIsMatriculaOpen(false);
-        }}
-      />
 
       {isOpen && (
         <UserModal

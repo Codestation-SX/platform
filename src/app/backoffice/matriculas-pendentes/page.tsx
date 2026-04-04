@@ -17,6 +17,16 @@ import PersonOffIcon from "@mui/icons-material/PersonOff";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+const paymentStatusLabels: Record<string, string> = {
+  PENDING: "Pendente",
+  PAID: "Pago",
+  CONFIRMED: "Confirmado",
+  FAILED: "Falhou",
+  CANCELLED: "Cancelado",
+  OVERDUE: "Vencido",
+  REFUNDED: "Reembolsado",
+};
+
 const educationLabels: Record<string, string> = {
   NONE: "Sem escolaridade",
   ELEMENTARY: "Ensino fundamental completo",
@@ -116,7 +126,7 @@ export default function MatriculasPendentesPage() {
                         </Typography>
                       </Box>
                       <Chip
-                        label={aluno.payment ? aluno.payment.status : "SEM PAGAMENTO"}
+                        label={aluno.payment ? (paymentStatusLabels[aluno.payment.status] ?? aluno.payment.status) : "Sem pagamento"}
                         color={aluno.payment ? "warning" : "error"}
                         size="small"
                       />

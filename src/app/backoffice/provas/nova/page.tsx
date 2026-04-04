@@ -431,6 +431,7 @@ export default function NovaProvaPage() {
                     fullWidth
                     select
                     SelectProps={{ native: true }}
+                    slotProps={{ inputLabel: { shrink: true } }}
                     {...register("turmaId")}
                   >
                     <option value="">Nenhuma turma</option>

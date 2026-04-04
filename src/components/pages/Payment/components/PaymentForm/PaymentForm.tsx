@@ -1,8 +1,10 @@
 "use client";
 import { Button, CircularProgress, Container, Stack, Typography } from "@mui/material";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { paymentSchema, PaymentFormValues } from "./paymentSchema";
+
+const PAYMENT_SESSION_KEY = "payment_form_draft";
 import { PaymentOptions } from "./PaymentOptions";
 import { CreditCardFields } from "./CreditCardFields";
 import { PaymentAlerts } from "./PaymentAlerts";
@@ -32,6 +34,7 @@ export default function PaymentForm() {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
@@ -45,6 +48,26 @@ export default function PaymentForm() {
       installments: "",
     },
   });
+
+  const watchedValues = useWatch({ control });
+
+  // Restore draft on mount
+  useEffect(() => {
+    const saved = sessionStorage.getItem(PAYMENT_SESSION_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as Partial<PaymentFormValues>;
+        (Object.entries(parsed) as [keyof PaymentFormValues, string][]).forEach(
+          ([key, value]) => setValue(key, value)
+        );
+      } catch {}
+    }
+  }, []);
+
+  // Save draft on change
+  useEffect(() => {
+    sessionStorage.setItem(PAYMENT_SESSION_KEY, JSON.stringify(watchedValues));
+  }, [watchedValues]);
 
   const paymentType = watch("paymentType");
 
@@ -109,6 +132,7 @@ export default function PaymentForm() {
 
       if (!res.ok) throw new Error(result.error || "Erro ao gerar pagamento");
 
+      sessionStorage.removeItem(PAYMENT_SESSION_KEY);
       setPaymentData({
         billingType: payload.billingType,
         ...result.data,

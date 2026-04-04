@@ -683,6 +683,7 @@ export default function EditarProvaPage() {
                     fullWidth
                     select
                     SelectProps={{ native: true }}
+                    slotProps={{ inputLabel: { shrink: true } }}
                     {...register("turmaId")}
                   >
                     <option value="">Nenhuma turma</option>

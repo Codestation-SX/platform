@@ -11,6 +11,9 @@ export const apiAsaas = axios.create({
 
 apiAsaas.interceptors.request.use((config) => {
   const rawKey = process.env.ASAAS_API_KEY ?? "";
-  config.headers["access_token"] = rawKey.startsWith("$") ? rawKey : `$${rawKey}`;
+  const finalKey = rawKey.startsWith("$") ? rawKey : `$${rawKey}`;
+  console.log("[Asaas] URL:", config.baseURL, config.url);
+  console.log("[Asaas] API Key (primeiros 20 chars):", finalKey.substring(0, 20));
+  config.headers["access_token"] = finalKey;
   return config;
 });

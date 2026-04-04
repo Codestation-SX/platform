@@ -16,6 +16,7 @@ import {
   IconButton,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -286,6 +287,7 @@ export default function ProvaForm({
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
   const [salvando, setSalvando] = useState(false);
+  const [tooltipMsg, setTooltipMsg] = useState("");
 
   const {
     control,
@@ -398,6 +400,22 @@ export default function ProvaForm({
     }
   };
 
+  const getFirstError = (obj: any): string => {
+    if (!obj) return "";
+    if (typeof obj.message === "string") return obj.message;
+    for (const key of Object.keys(obj)) {
+      const result = getFirstError(obj[key]);
+      if (result) return result;
+    }
+    return "";
+  };
+
+  const onInvalid = (errs: any) => {
+    const msg = getFirstError(errs);
+    setTooltipMsg(msg || "Preencha todos os campos obrigatórios.");
+    setTimeout(() => setTooltipMsg(""), 4000);
+  };
+
   return (
     <Stack spacing={3}>
       <Box>
@@ -437,7 +455,7 @@ export default function ProvaForm({
       {erro && <Alert severity="error">{erro}</Alert>}
       {sucesso && <Alert severity="success">{sucesso}</Alert>}
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
         <Stack spacing={3}>
           <Card>
             <CardContent>
@@ -589,13 +607,17 @@ export default function ProvaForm({
               Cancelar
             </Button>
 
-            <Button type="submit" variant="contained" disabled={salvando}>
-              {salvando
-                ? "Salvando..."
-                : mode === "create"
-                ? "Salvar prova"
-                : "Atualizar prova"}
-            </Button>
+            <Tooltip title={tooltipMsg} open={!!tooltipMsg} arrow>
+              <span>
+                <Button type="submit" variant="contained" disabled={salvando}>
+                  {salvando
+                    ? "Salvando..."
+                    : mode === "create"
+                    ? "Salvar prova"
+                    : "Atualizar prova"}
+                </Button>
+              </span>
+            </Tooltip>
           </Stack>
         </Stack>
       </form>

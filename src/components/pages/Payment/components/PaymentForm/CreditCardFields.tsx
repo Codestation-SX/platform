@@ -88,9 +88,7 @@ export function CreditCardFields({
             />
           )}
         />
-        <FormHelperText>
-          {errors.holderCpf?.message ?? "Insira o CPF do responsável pelo cartão de crédito"}
-        </FormHelperText>
+        <FormHelperText>{errors.holderCpf?.message}</FormHelperText>
       </FormControl>
 
       <Box display="flex" gap={2}>
