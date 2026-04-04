@@ -1,4 +1,4 @@
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -27,7 +27,7 @@ import StyledCard from "@/components/core/StyledCard";
 import { registerSchema, RegisterFormData } from "./validations";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/hooks/useToast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const educationLevels = [
   { value: "NONE", label: "Sem escolaridade" },
@@ -57,7 +57,9 @@ export default function RegisterForm() {
     today.getDate()
   );
 
-  const { control, handleSubmit, setValue, setError, clearErrors } =
+  const SESSION_KEY = "matricula_form_draft";
+
+  const { control, handleSubmit, setValue, setError, clearErrors, reset } =
     useForm<RegisterFormData>({
       resolver: zodResolver(registerSchema),
       defaultValues: {
@@ -82,6 +84,32 @@ export default function RegisterForm() {
         terms: false,
       },
     });
+
+  const watchedValues = useWatch({ control });
+
+  // Restaura rascunho do sessionStorage ao montar
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(SESSION_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        Object.entries(parsed).forEach(([key, value]) => {
+          if (key === "birthDate" && value) {
+            setValue(key as keyof RegisterFormData, new Date(value as string) as any);
+          } else {
+            setValue(key as keyof RegisterFormData, value as any);
+          }
+        });
+      }
+    } catch {}
+  }, []);
+
+  // Salva rascunho no sessionStorage a cada alteração
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(watchedValues));
+    } catch {}
+  }, [watchedValues]);
 
   const buscarCep = async (cep: string) => {
     const cepLimpo = cep.replace(/\D/g, "");
@@ -125,6 +153,7 @@ export default function RegisterForm() {
       });
 
       if (result?.ok) {
+        sessionStorage.removeItem(SESSION_KEY);
         success("Cadastro realizado com sucesso!");
         router.push("/painel/pagamento");
       } else {
