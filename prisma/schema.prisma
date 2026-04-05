@@ -75,16 +75,20 @@ model PasswordReset {
 }
 
 model Payment {
-  id             String        @id @default(cuid())
-  userId         String        @unique
-  asaasInvoiceId String        @unique
-  value          Float
-  dueDate        DateTime
-  createdAt      DateTime      @default(now())
-  deletedAt      DateTime?
-  updatedAt      DateTime      @updatedAt
-  status         PaymentStatus @default(PENDING)
-  user           User          @relation(fields: [userId], references: [id])
+  id                String        @id @default(cuid())
+  userId            String        @unique
+  asaasInvoiceId    String        @unique
+  value             Float
+  dueDate           DateTime
+  createdAt         DateTime      @default(now())
+  deletedAt         DateTime?
+  updatedAt         DateTime      @updatedAt
+  status            PaymentStatus @default(PENDING)
+  billingType       String?
+  pixQrCode         String?
+  pixKey            String?
+  pixExpirationDate DateTime?
+  user              User          @relation(fields: [userId], references: [id])
 }
 
 model Prova {

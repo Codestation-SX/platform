@@ -107,6 +107,10 @@ export async function GET(req: NextRequest) {
         status,
         invoiceUrl,
         contractUrl: contract?.fileUrl || "",
+        billingType: payment?.billingType ?? null,
+        pixQrCode: payment?.pixQrCode ?? null,
+        pixKey: payment?.pixKey ?? null,
+        pixExpirationDate: payment?.pixExpirationDate?.toISOString() ?? null,
       },
     });
   } catch (err) {

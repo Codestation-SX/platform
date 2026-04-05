@@ -65,18 +65,7 @@ export async function createPayment(input: CreatePaymentInput) {
     throw new Error("Erro ao criar cobrança no Asaas");
   }
 
-  // 3. Salva no Prisma
-  const payment = await prisma.payment.create({
-    data: {
-      userId,
-      asaasInvoiceId: paymentData.id,
-      value,
-      dueDate: new Date(dueDate),
-      status: PaymentStatus.PENDING,
-    },
-  });
-  console.log(payment);
-  // 4. Para PIX, busca QR code e chave copia-e-cola
+  // 3. Para PIX, busca QR code e chave copia-e-cola antes de salvar
   let pixQrCode: string | undefined;
   let pixKey: string | undefined;
   let pixExpirationDate: string | undefined;
@@ -87,6 +76,22 @@ export async function createPayment(input: CreatePaymentInput) {
     pixKey = pixRes.data.payload;
     pixExpirationDate = pixRes.data.expirationDate;
   }
+
+  // 4. Salva no Prisma com dados do PIX
+  const payment = await prisma.payment.create({
+    data: {
+      userId,
+      asaasInvoiceId: paymentData.id,
+      value,
+      dueDate: new Date(dueDate),
+      status: PaymentStatus.PENDING,
+      billingType,
+      pixQrCode: pixQrCode ?? null,
+      pixKey: pixKey ?? null,
+      pixExpirationDate: pixExpirationDate ? new Date(pixExpirationDate) : null,
+    },
+  });
+  console.log(payment);
 
   // 5. Retorna dados úteis
   return {
