@@ -1,83 +1,66 @@
-import { withAuth, NextRequestWithAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-interface InterceptRequest extends NextRequest, NextRequestWithAuth {}
 import { getToken } from "next-auth/jwt";
 
-export default withAuth(
-  async function middleware(req: InterceptRequest) {
-    const { pathname } = req.nextUrl;
-    const token = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
-    console.log(pathname, token);
-    // Se estiver tentando acessar a área /backoffice
-    if (pathname.startsWith("/backoffice")) {
-      // Se não tiver token, redirecione para login
-      if (!token) {
-        return NextResponse.redirect(new URL("/admin/login", req.url));
-      }
+export default async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
-      // Se tiver token mas não for admin, redirecione para login
-      if (token.role !== "admin") {
-        return NextResponse.redirect(new URL("/admin/login", req.url));
-      }
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  // /admin/login — always accessible; redirect admin if already logged in
+  if (pathname === "/admin/login") {
+    if (token?.role === "admin") {
+      return NextResponse.redirect(new URL("/backoffice", req.url));
     }
-    if (pathname.startsWith("/painel")) {
-      // Se não tiver token, redirecione para login
-      if (!token) {
-        return NextResponse.redirect(new URL("/login", req.url));
-      }
+    return NextResponse.next();
+  }
 
-      // Se tiver token mas não for admin nem student, redirecione para login
-      if (token.role !== "admin" && token.role !== "student") {
-        return NextResponse.redirect(new URL("/login", req.url));
-      }
-
-      // Aluno sem pagamento confirmado só acessa /painel/pagamento
-      const pagamentoConfirmado = (token as any).payment?.status === "PAID";
-      const pagamentoIsento = (token as any).paymentDeferred === true;
-      const isAdmin = token.role === "admin";
-      const isPaginaPagamento = pathname.startsWith("/painel/pagamento");
-
-      if (!isAdmin && !pagamentoConfirmado && !pagamentoIsento && !isPaginaPagamento) {
-        return NextResponse.redirect(new URL("/painel/pagamento", req.url));
-      }
-    }
-
-    // Se estiver tentando acessar /login mas já estiver autenticado
-    if (
-      pathname.startsWith("/login") &&
-      token &&
-      (token.role === "admin" || token.role === "student")
-    ) {
+  // /login — always accessible; redirect if already logged in
+  if (pathname.startsWith("/login")) {
+    if (token && (token.role === "admin" || token.role === "student")) {
       return NextResponse.redirect(new URL("/painel", req.url));
     }
-    // Se todas as verificações passarem, continue com a requisição
     return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: async ({ req }) => {
-        const token = await getToken({
-          req,
-          secret: process.env.NEXTAUTH_SECRET,
-        });
-
-        if (req.nextUrl.pathname === "/admin/login") {
-          return true;
-        }
-
-        if (req.nextUrl.pathname === "/login") {
-          return true;
-        }
-
-        return !!token;
-      },
-    },
   }
-);
+
+  // /backoffice — admin only
+  if (pathname.startsWith("/backoffice")) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/admin/login", req.url));
+    }
+    if (token.role !== "admin") {
+      return NextResponse.redirect(new URL("/admin/login", req.url));
+    }
+    return NextResponse.next();
+  }
+
+  // /painel — student or admin
+  if (pathname.startsWith("/painel")) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+    if (token.role !== "admin" && token.role !== "student") {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+
+    // Aluno sem pagamento confirmado só acessa /painel/pagamento
+    const pagamentoConfirmado = (token as any).payment?.status === "PAID";
+    const pagamentoIsento = (token as any).paymentDeferred === true;
+    const isAdmin = token.role === "admin";
+    const isPaginaPagamento = pathname.startsWith("/painel/pagamento");
+
+    if (!isAdmin && !pagamentoConfirmado && !pagamentoIsento && !isPaginaPagamento) {
+      return NextResponse.redirect(new URL("/painel/pagamento", req.url));
+    }
+
+    return NextResponse.next();
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: ["/backoffice/:path*", "/admin/login", "/login", "/painel/:path*"],
