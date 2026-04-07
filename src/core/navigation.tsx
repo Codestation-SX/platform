@@ -12,6 +12,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SchoolIcon from "@mui/icons-material/School";
+import FiberNewIcon from "@mui/icons-material/FiberNew";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 
 export const NAVIGATION_BACKOFFICE: Navigation = [
@@ -29,6 +30,11 @@ export const NAVIGATION_BACKOFFICE: Navigation = [
     segment: "backoffice/users",
     title: "Usuários",
     icon: <PersonIcon />,
+  },
+  {
+    segment: "backoffice/matriculas-novas",
+    title: "Matrículas Novas",
+    icon: <FiberNewIcon />,
   },
   {
     segment: "backoffice/matriculas",
