@@ -183,10 +183,12 @@ export default function PaymentForm() {
       {paymentData && modalOpen && (
         <PaymentSuccessModal
           open={modalOpen}
-          onClose={() => {
+          onClose={async () => {
             setModalOpen(false);
             if (paymentData.billingType === "CREDIT_CARD") {
-              router.push("/painel/aulas");
+              // Atualiza o cookie do JWT com o status PAID antes de navegar
+              await fetch("/api/auth/session");
+              window.location.href = "/painel/aulas";
             }
           }}
           paymentData={paymentData}

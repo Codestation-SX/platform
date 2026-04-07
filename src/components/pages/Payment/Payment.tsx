@@ -25,7 +25,15 @@ export default function PaymentsPage() {
     const fetchStatus = async () => {
       try {
         const res = await api.get("/api/asaas/status");
-        setPayment(res.data.data);
+        const data = res.data.data;
+        // Se já está PAID mas o middleware ainda não sabe (JWT desatualizado),
+        // atualiza o cookie do JWT e redireciona para o painel
+        if (data?.status === "PAID") {
+          await fetch("/api/auth/session");
+          window.location.href = "/painel/aulas";
+          return;
+        }
+        setPayment(data);
       } catch (err) {
         console.error("Erro ao buscar status do pagamento", err);
       } finally {
