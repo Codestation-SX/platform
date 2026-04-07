@@ -77,14 +77,21 @@ export async function createPayment(input: CreatePaymentInput) {
     pixExpirationDate = pixRes.data.expirationDate;
   }
 
-  // 4. Salva no Prisma com dados do PIX
+  // 4. Mapeia o status retornado pelo Asaas para o status interno
+  const asaasStatus: string = paymentData.status ?? "";
+  const dbStatus: PaymentStatus =
+    ["RECEIVED", "CONFIRMED"].includes(asaasStatus)
+      ? PaymentStatus.PAID
+      : PaymentStatus.PENDING;
+
+  // 5. Salva no Prisma com dados do PIX
   const payment = await prisma.payment.create({
     data: {
       userId,
       asaasInvoiceId: paymentData.id,
       value,
       dueDate: new Date(dueDate),
-      status: PaymentStatus.PENDING,
+      status: dbStatus,
       billingType,
       pixQrCode: pixQrCode ?? null,
       pixKey: pixKey ?? null,
