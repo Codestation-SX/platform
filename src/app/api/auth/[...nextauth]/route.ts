@@ -73,6 +73,7 @@ const authOptions = NextAuth({
     },
     async jwt({ token, user }) {
       if (user) {
+        // Primeira execução: login — preenche todos os campos do token
         const userData = await prisma.user.findUnique({
           where: { id: user.id },
           include: {
@@ -105,6 +106,29 @@ const authOptions = NextAuth({
         token.birthDate = userData?.birthDate?.toISOString() ?? "";
         token.cidade = userData?.address?.city ?? "";
         token.estado = userData?.address?.state ?? "";
+      } else if (token.id) {
+        // Requisições subsequentes: atualiza campos dinâmicos do banco
+        const userData = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: {
+            paymentDeferred: true,
+            payment: { select: { status: true } },
+            contract: { select: { isSigned: true, isValidated: true } },
+          },
+        });
+
+        if (userData) {
+          token.paymentDeferred = userData.paymentDeferred ?? false;
+          token.payment = {
+            status:
+              (userData.payment?.status as keyof typeof STATUS_PAYMENT) ||
+              "PENDING",
+          };
+          token.contract = {
+            isSigned: userData.contract?.isSigned || false,
+            isValidated: userData.contract?.isValidated || false,
+          };
+        }
       }
 
       return token;
