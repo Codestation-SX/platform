@@ -183,7 +183,12 @@ export default function PaymentForm() {
       {paymentData && modalOpen && (
         <PaymentSuccessModal
           open={modalOpen}
-          onClose={() => setModalOpen(false)}
+          onClose={() => {
+            setModalOpen(false);
+            if (paymentData.billingType === "CREDIT_CARD") {
+              router.push("/painel/aulas");
+            }
+          }}
           paymentData={paymentData}
         />
       )}
