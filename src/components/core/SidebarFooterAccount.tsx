@@ -38,12 +38,6 @@ const pages = [
     label: "Perfil",
     description: "Gerenciar informações pessoais",
   },
-  {
-    id: 2,
-    url: "/painel/pagamento",
-    label: "Pagamento",
-    description: "Histórico de pagamentos",
-  },
 ];
 
 function SidebarFooterAccountPopover() {
