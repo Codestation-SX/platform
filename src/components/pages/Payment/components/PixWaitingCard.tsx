@@ -171,6 +171,21 @@ export default function PixWaitingCard({
               Escaneie o QR Code abaixo ou copie a chave Pix para realizar o
               pagamento. A confirmação é automática.
             </Typography>
+            <Box
+              sx={{
+                mt: 1.5,
+                display: "inline-flex",
+                alignItems: "baseline",
+                gap: 0.5,
+              }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                Valor:
+              </Typography>
+              <Typography variant="h6" fontWeight={700} color="primary">
+                R$ 6.000,00
+              </Typography>
+            </Box>
           </Box>
 
           <Alert
@@ -256,8 +271,13 @@ export default function PixWaitingCard({
             }}
           />
 
-          <Button variant="outlined" fullWidth onClick={onRegenerate}>
-            Voltar e escolher outra forma de pagamento
+          <Button
+            variant="text"
+            size="small"
+            onClick={onRegenerate}
+            sx={{ alignSelf: "center", color: "text.secondary" }}
+          >
+            ← Voltar e escolher outra forma de pagamento
           </Button>
         </Stack>
       </CardContent>
