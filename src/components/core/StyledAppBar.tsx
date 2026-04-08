@@ -54,6 +54,8 @@ export default function AppAppBar() {
             sx={{ flexGrow: 1, display: "flex", alignItems: "center", px: 0 }}
           >
             <Typography
+              component={Link}
+              href="/"
               fontWeight={800}
               sx={{
                 fontFamily: "var(--font-syne, sans-serif)",
@@ -61,6 +63,7 @@ export default function AppAppBar() {
                 letterSpacing: "1px",
                 color: "#63b3ed",
                 mr: 1,
+                textDecoration: "none",
               }}
             >
               CODE<span style={{ color: "#e2e8f0" }}>STATION</span>
