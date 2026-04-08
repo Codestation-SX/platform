@@ -44,8 +44,13 @@ export default function PaymentsPage() {
     fetchStatus();
   }, []);
 
-  const handlePaid = useCallback((invoiceUrl: string, contractUrl: string) => {
-    setPayment({ status: "PAID", invoiceUrl, contractUrl });
+  const handlePaid = useCallback(async () => {
+    await fetch("/api/auth/session");
+    window.location.href = "/painel/aulas";
+  }, []);
+
+  const handleRegenerate = useCallback(() => {
+    setPayment(null);
   }, []);
 
   if (loading) {
@@ -69,6 +74,7 @@ export default function PaymentsPage() {
         pixKey={payment.pixKey}
         pixExpirationDate={payment.pixExpirationDate}
         onPaid={handlePaid}
+        onRegenerate={handleRegenerate}
       />
     );
   }

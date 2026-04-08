@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -19,6 +20,8 @@ import {
 import CheckIcon from "@mui/icons-material/Check";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import Image from "next/image";
 import { api } from "@/lib/api";
 
@@ -26,19 +29,53 @@ interface Props {
   pixQrCode: string;
   pixKey: string;
   pixExpirationDate?: string | null;
-  onPaid: (invoiceUrl: string, contractUrl: string) => void;
+  onPaid: () => void;
+  onRegenerate: () => void;
 }
 
 const POLL_INTERVAL_MS = 5000;
+
+function useCountdown(expirationDate?: string | null) {
+  const getSecondsLeft = useCallback(() => {
+    if (!expirationDate) return null;
+    return Math.max(
+      Math.floor((new Date(expirationDate).getTime() - Date.now()) / 1000),
+      0
+    );
+  }, [expirationDate]);
+
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(() =>
+    getSecondsLeft()
+  );
+
+  useEffect(() => {
+    if (secondsLeft === null || secondsLeft <= 0) return;
+    const timer = setTimeout(() => setSecondsLeft(getSecondsLeft()), 1000);
+    return () => clearTimeout(timer);
+  }, [secondsLeft, getSecondsLeft]);
+
+  return secondsLeft;
+}
+
+function formatTime(seconds: number) {
+  const m = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const s = (seconds % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
 
 export default function PixWaitingCard({
   pixQrCode,
   pixKey,
   pixExpirationDate,
   onPaid,
+  onRegenerate,
 }: Props) {
   const [copied, setCopied] = useState(false);
   const [paid, setPaid] = useState(false);
+  const secondsLeft = useCountdown(pixExpirationDate);
+  const expired = secondsLeft !== null && secondsLeft <= 0;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(pixKey);
@@ -46,8 +83,9 @@ export default function PixWaitingCard({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Polling: verifica pagamento a cada 5s
+  // Polling: verifica pagamento a cada 5s (para quando expirado ou pago)
   useEffect(() => {
+    if (expired) return;
     const interval = setInterval(async () => {
       try {
         const res = await api.get("/api/asaas/status");
@@ -55,7 +93,7 @@ export default function PixWaitingCard({
         if (data?.status === "PAID") {
           setPaid(true);
           clearInterval(interval);
-          setTimeout(() => onPaid(data.invoiceUrl, data.contractUrl), 1500);
+          setTimeout(() => onPaid(), 1500);
         }
       } catch {
         // silencioso — continua tentando
@@ -63,8 +101,9 @@ export default function PixWaitingCard({
     }, POLL_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [onPaid]);
+  }, [onPaid, expired]);
 
+  // Tela de pagamento confirmado
   if (paid) {
     return (
       <Card>
@@ -72,11 +111,42 @@ export default function PixWaitingCard({
           <Stack alignItems="center" spacing={2} py={4}>
             <CheckCircleIcon sx={{ fontSize: 64, color: "success.main" }} />
             <Typography variant="h5" fontWeight={700} color="success.main">
-              Pagamento confirmado!
+              PIX recebido!
             </Typography>
             <Typography color="text.secondary">
               Redirecionando para o painel...
             </Typography>
+            <CircularProgress size={24} color="success" />
+          </Stack>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Tela de QR Code expirado
+  if (expired) {
+    return (
+      <Card>
+        <CardContent>
+          <Stack alignItems="center" spacing={3} py={5}>
+            <AccessTimeIcon sx={{ fontSize: 64, color: "warning.main" }} />
+            <Box textAlign="center">
+              <Typography variant="h5" fontWeight={700} gutterBottom>
+                QR Code expirado
+              </Typography>
+              <Typography color="text.secondary">
+                O tempo para pagamento expirou. Gere um novo QR Code para
+                continuar.
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              startIcon={<RefreshIcon />}
+              onClick={onRegenerate}
+              size="large"
+            >
+              Gerar novo QR Code
+            </Button>
           </Stack>
         </CardContent>
       </Card>
@@ -92,8 +162,8 @@ export default function PixWaitingCard({
               Pague com Pix
             </Typography>
             <Typography color="text.secondary" mt={0.5}>
-              Escaneie o QR Code abaixo ou copie a chave Pix para realizar o pagamento.
-              A confirmação é automática.
+              Escaneie o QR Code abaixo ou copie a chave Pix para realizar o
+              pagamento. A confirmação é automática.
             </Typography>
           </Box>
 
@@ -126,6 +196,32 @@ export default function PixWaitingCard({
             </Box>
           </Box>
 
+          {/* Countdown */}
+          {secondsLeft !== null && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                justifyContent: "center",
+                px: 2,
+                py: 1.5,
+                borderRadius: 2,
+                bgcolor: secondsLeft < 120 ? "warning.main" : "action.hover",
+                color:
+                  secondsLeft < 120
+                    ? "warning.contrastText"
+                    : "text.secondary",
+                transition: "background-color 0.5s",
+              }}
+            >
+              <AccessTimeIcon fontSize="small" />
+              <Typography variant="body2" fontWeight={600}>
+                QR Code expira em: {formatTime(secondsLeft)}
+              </Typography>
+            </Box>
+          )}
+
           <Divider>
             <Chip label="ou copie a chave" size="small" />
           </Divider>
@@ -153,15 +249,6 @@ export default function PixWaitingCard({
               ),
             }}
           />
-
-          {pixExpirationDate && (
-            <Typography variant="caption" color="text.secondary">
-              Este QR Code expira em:{" "}
-              <strong>
-                {new Date(pixExpirationDate).toLocaleString("pt-BR")}
-              </strong>
-            </Typography>
-          )}
         </Stack>
       </CardContent>
     </Card>
