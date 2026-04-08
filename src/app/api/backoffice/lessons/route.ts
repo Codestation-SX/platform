@@ -59,10 +59,15 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const unitId = searchParams.get("unitId");
+    const turmaId = searchParams.get("turmaId");
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
 
-    const whereClause = { deletedAt: null, ...(unitId ? { unitId } : {}) };
+    const whereClause = {
+      deletedAt: null,
+      ...(unitId ? { unitId } : {}),
+      ...(turmaId ? { turmaId } : {}),
+    };
     const orderBy = parseSortParams(searchParams, ["title", "createdAt"]);
     const lessons = await prisma.lesson.findMany({
       where: whereClause,
