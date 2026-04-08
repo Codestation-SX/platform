@@ -23,6 +23,7 @@ interface PixGeneratedData {
   pixQrCode: string;
   pixKey: string;
   pixExpirationDate?: string | null;
+  precoPix: number;
 }
 
 interface Props {
@@ -36,7 +37,8 @@ export default function PaymentForm({ onPixGenerated }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [precoCurso, setPrecoCurso] = useState<number>(1200);
+  const [precoPix, setPrecoPix] = useState<number>(6000);
+  const [precoCartao, setPrecoCartao] = useState<number>(1200);
   const [pixAutoSubmitting, setPixAutoSubmitting] = useState(false);
   const pixTriggeredRef = useRef(false);
 
@@ -44,7 +46,8 @@ export default function PaymentForm({ onPixGenerated }: Props) {
     fetch("/api/public/configuracoes")
       .then((r) => r.json())
       .then((data) => {
-        if (data.preco_curso) setPrecoCurso(data.preco_curso);
+        if (data.preco_pix) setPrecoPix(data.preco_pix);
+        if (data.preco_cartao) setPrecoCartao(data.preco_cartao);
       })
       .catch(() => {});
   }, []);
@@ -112,6 +115,7 @@ export default function PaymentForm({ onPixGenerated }: Props) {
             pixQrCode: existing.pixQrCode,
             pixKey: existing.pixKey,
             pixExpirationDate: existing.pixExpirationDate ?? null,
+            precoPix,
           });
           return;
         }
@@ -123,7 +127,7 @@ export default function PaymentForm({ onPixGenerated }: Props) {
         ...(session.user.asaasCustomerId && {
           customerId: session.user.asaasCustomerId,
         }),
-        value: precoCurso,
+        value: precoPix,
         dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
         billingType: "PIX",
       };
@@ -139,6 +143,7 @@ export default function PaymentForm({ onPixGenerated }: Props) {
         pixQrCode: result.data.pixQrCode,
         pixKey: result.data.pixKey,
         pixExpirationDate: result.data.pixExpirationDate ?? null,
+        precoPix,
       });
     } catch (err: any) {
       setSubmitError(err.message || "Erro ao gerar QR Code PIX. Tente novamente.");
@@ -146,7 +151,7 @@ export default function PaymentForm({ onPixGenerated }: Props) {
     } finally {
       setPixAutoSubmitting(false);
     }
-  }, [session, precoCurso, onPixGenerated]);
+  }, [session, precoPix, onPixGenerated]);
 
   useEffect(() => {
     if (paymentType !== "PIX") {
@@ -173,7 +178,7 @@ export default function PaymentForm({ onPixGenerated }: Props) {
     const payload: any = {
       userId,
       ...(customerId && { customerId }),
-      value: precoCurso,
+      value: precoCartao,
       dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
       billingType: "CREDIT_CARD",
     };
@@ -265,7 +270,7 @@ export default function PaymentForm({ onPixGenerated }: Props) {
               <CreditCardFields
                 control={control}
                 errors={errors}
-                precoCurso={precoCurso}
+                precoCurso={precoCartao}
               />
             )}
             {submitError && (

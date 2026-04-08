@@ -17,9 +17,12 @@ import {
 import SettingsIcon from "@mui/icons-material/Settings";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import SaveIcon from "@mui/icons-material/Save";
+import PixIcon from "@mui/icons-material/Pix";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
 
 export default function ConfiguracoesPage() {
-  const [precoCurso, setPrecoCurso] = useState("");
+  const [precoPix, setPrecoPix] = useState("");
+  const [precoCartao, setPrecoCartao] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [erro, setErro] = useState("");
@@ -29,16 +32,23 @@ export default function ConfiguracoesPage() {
     fetch("/api/backoffice/configuracoes")
       .then((r) => r.json())
       .then((data) => {
-        setPrecoCurso(data.preco_curso ?? "1200");
+        setPrecoPix(data.preco_pix ?? "6000");
+        setPrecoCartao(data.preco_cartao ?? "1200");
       })
       .catch(() => setErro("Erro ao carregar configurações."))
       .finally(() => setLoading(false));
   }, []);
 
   const handleSalvar = async () => {
-    const valor = parseFloat(precoCurso.replace(",", "."));
-    if (isNaN(valor) || valor <= 0) {
-      setErro("Informe um valor válido maior que zero.");
+    const valorPix = parseFloat(precoPix.replace(",", "."));
+    const valorCartao = parseFloat(precoCartao.replace(",", "."));
+
+    if (isNaN(valorPix) || valorPix <= 0) {
+      setErro("Informe um valor válido para PIX maior que zero.");
+      return;
+    }
+    if (isNaN(valorCartao) || valorCartao <= 0) {
+      setErro("Informe um valor válido para cartão de crédito maior que zero.");
       return;
     }
 
@@ -50,7 +60,10 @@ export default function ConfiguracoesPage() {
       const res = await fetch("/api/backoffice/configuracoes", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ preco_curso: String(valor) }),
+        body: JSON.stringify({
+          preco_pix: String(valorPix),
+          preco_cartao: String(valorCartao),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao salvar.");
@@ -84,25 +97,55 @@ export default function ConfiguracoesPage() {
                   <Typography variant="h6" fontWeight={600} mb={0.5}>
                     Preço do curso
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" mb={2}>
-                    Valor cobrado no momento do pagamento. Altere aqui para promoções ou reajustes.
+                  <Typography variant="body2" color="text.secondary" mb={3}>
+                    Defina os valores cobrados por forma de pagamento. Altere para promoções ou reajustes.
                   </Typography>
-                  <TextField
-                    label="Valor do curso (R$)"
-                    value={precoCurso}
-                    onChange={(e) => setPrecoCurso(e.target.value)}
-                    size="small"
-                    type="number"
-                    inputProps={{ min: 1, step: "0.01" }}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <AttachMoneyIcon fontSize="small" />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{ width: 220 }}
-                  />
+
+                  <Stack spacing={2.5}>
+                    <Box>
+                      <Typography variant="body2" fontWeight={600} mb={1} color="text.secondary">
+                        Pagamento via PIX
+                      </Typography>
+                      <TextField
+                        label="Valor à vista no PIX (R$)"
+                        value={precoPix}
+                        onChange={(e) => setPrecoPix(e.target.value)}
+                        size="small"
+                        type="number"
+                        inputProps={{ min: 1, step: "0.01" }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PixIcon fontSize="small" color="success" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{ width: 260 }}
+                      />
+                    </Box>
+
+                    <Box>
+                      <Typography variant="body2" fontWeight={600} mb={1} color="text.secondary">
+                        Pagamento via Cartão de Crédito
+                      </Typography>
+                      <TextField
+                        label="Valor no cartão de crédito (R$)"
+                        value={precoCartao}
+                        onChange={(e) => setPrecoCartao(e.target.value)}
+                        size="small"
+                        type="number"
+                        inputProps={{ min: 1, step: "0.01" }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <CreditCardIcon fontSize="small" color="primary" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{ width: 260 }}
+                      />
+                    </Box>
+                  </Stack>
                 </Box>
 
                 {erro && <Alert severity="error">{erro}</Alert>}

@@ -29,6 +29,7 @@ interface Props {
   pixQrCode: string;
   pixKey: string;
   pixExpirationDate?: string | null;
+  precoPix: number;
   onPaid: () => void;
   onRegenerate: () => void;
 }
@@ -71,6 +72,7 @@ export default function PixWaitingCard({
   pixQrCode,
   pixKey,
   pixExpirationDate,
+  precoPix,
   onPaid,
   onRegenerate,
 }: Props) {
@@ -184,7 +186,7 @@ export default function PixWaitingCard({
                 Valor:
               </Typography>
               <Typography variant="h6" fontWeight={700} color="primary">
-                R$ 6.000,00
+                {precoPix.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </Typography>
             </Box>
           </Box>

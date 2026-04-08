@@ -15,6 +15,7 @@ interface PaymentData {
   pixQrCode?: string | null;
   pixKey?: string | null;
   pixExpirationDate?: string | null;
+  precoPix?: number;
 }
 
 export default function PaymentsPage() {
@@ -54,7 +55,7 @@ export default function PaymentsPage() {
   }, []);
 
   const handlePixGenerated = useCallback(
-    (data: { pixQrCode: string; pixKey: string; pixExpirationDate?: string | null }) => {
+    (data: { pixQrCode: string; pixKey: string; pixExpirationDate?: string | null; precoPix: number }) => {
       setPayment({
         status: "PENDING",
         invoiceUrl: "",
@@ -63,6 +64,7 @@ export default function PaymentsPage() {
         pixQrCode: data.pixQrCode,
         pixKey: data.pixKey,
         pixExpirationDate: data.pixExpirationDate ?? null,
+        precoPix: data.precoPix,
       });
     },
     []
@@ -88,6 +90,7 @@ export default function PaymentsPage() {
         pixQrCode={payment.pixQrCode}
         pixKey={payment.pixKey}
         pixExpirationDate={payment.pixExpirationDate}
+        precoPix={payment.precoPix ?? 6000}
         onPaid={handlePaid}
         onRegenerate={handleRegenerate}
       />
