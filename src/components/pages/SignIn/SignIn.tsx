@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { backofficeTheme } from "@/theme/backofficeTheme";
 import LinkNext from "next/link";
 import { useForm, Controller } from "react-hook-form";
@@ -101,6 +102,11 @@ export default function SignIn({ role }: { role?: Role }) {
           <CircularProgress color="inherit" />
         </Backdrop>
         <StyledCard sx={{ maxWidth: 480 }}>
+          <Box sx={{ width: "100%", mb: -1 }}>
+            <IconButton component={LinkNext} href="/" size="small" sx={{ color: "text.secondary" }}>
+              <ArrowBackIcon fontSize="small" />
+            </IconButton>
+          </Box>
           <Typography
             component="h1"
             fontWeight={800}
@@ -212,15 +218,6 @@ export default function SignIn({ role }: { role?: Role }) {
                 Esqueceu a senha?
               </Link>
             </Box>
-
-            <Button
-              component={LinkNext}
-              href="/"
-              variant="outlined"
-              fullWidth
-            >
-              Voltar para o início
-            </Button>
           </Box>
         </StyledCard>
       </StyledContainer>
