@@ -81,6 +81,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Customer ID não encontrado" }, { status: 400 });
     }
 
+    // Para PIX: reutiliza cobrança pendente existente — evita duplicatas no Asaas
+    if (input.billingType === "PIX") {
+      const existing = await prisma.payment.findUnique({
+        where: { userId: input.userId },
+      });
+      if (
+        existing?.status === "PENDING" &&
+        existing?.billingType === "PIX" &&
+        existing?.pixQrCode &&
+        existing?.pixKey
+      ) {
+        return NextResponse.json(
+          {
+            message: "PIX pendente reutilizado",
+            data: {
+              pixQrCode: existing.pixQrCode,
+              pixKey: existing.pixKey,
+              pixExpirationDate: existing.pixExpirationDate?.toISOString() ?? null,
+              invoiceUrl: null,
+            },
+          },
+          { status: 200 }
+        );
+      }
+    }
+
     const result = await createPayment({ ...input, customerId });
 
     // Envia email de confirmação de pagamento
