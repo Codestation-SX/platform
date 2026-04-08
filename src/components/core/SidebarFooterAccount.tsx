@@ -35,8 +35,8 @@ const pages = [
   {
     id: 1,
     url: "/painel/perfil",
-    label: "Perfil",
-    description: "Gerenciar informações pessoais",
+    label: "Alterar senha",
+    description: "Redefinir sua senha de acesso",
   },
 ];
 
