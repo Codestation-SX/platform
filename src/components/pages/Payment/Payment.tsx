@@ -53,6 +53,21 @@ export default function PaymentsPage() {
     setPayment(null);
   }, []);
 
+  const handlePixGenerated = useCallback(
+    (data: { pixQrCode: string; pixKey: string; pixExpirationDate?: string | null }) => {
+      setPayment({
+        status: "PENDING",
+        invoiceUrl: "",
+        contractUrl: "",
+        billingType: "PIX",
+        pixQrCode: data.pixQrCode,
+        pixKey: data.pixKey,
+        pixExpirationDate: data.pixExpirationDate ?? null,
+      });
+    },
+    []
+  );
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" mt={4}>
@@ -89,5 +104,5 @@ export default function PaymentsPage() {
   }
 
   // Sem pagamento gerado ou outro método → formulário
-  return <PaymentForm />;
+  return <PaymentForm onPixGenerated={handlePixGenerated} />;
 }
