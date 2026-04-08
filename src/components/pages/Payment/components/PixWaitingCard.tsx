@@ -34,14 +34,15 @@ interface Props {
 }
 
 const POLL_INTERVAL_MS = 5000;
+const MAX_SECONDS = 4 * 60; // 4 minutos
 
 function useCountdown(expirationDate?: string | null) {
   const getSecondsLeft = useCallback(() => {
-    if (!expirationDate) return null;
-    return Math.max(
-      Math.floor((new Date(expirationDate).getTime() - Date.now()) / 1000),
-      0
+    if (!expirationDate) return MAX_SECONDS;
+    const fromExpiration = Math.floor(
+      (new Date(expirationDate).getTime() - Date.now()) / 1000
     );
+    return Math.max(Math.min(fromExpiration, MAX_SECONDS), 0);
   }, [expirationDate]);
 
   const [secondsLeft, setSecondsLeft] = useState<number | null>(() =>
@@ -135,18 +136,23 @@ export default function PixWaitingCard({
                 QR Code expirado
               </Typography>
               <Typography color="text.secondary">
-                O tempo para pagamento expirou. Gere um novo QR Code para
-                continuar.
+                O tempo para pagamento expirou. Gere um novo QR Code ou escolha
+                outra forma de pagamento.
               </Typography>
             </Box>
-            <Button
-              variant="contained"
-              startIcon={<RefreshIcon />}
-              onClick={onRegenerate}
-              size="large"
-            >
-              Gerar novo QR Code
-            </Button>
+            <Stack spacing={1.5} width="100%" maxWidth={300}>
+              <Button
+                variant="contained"
+                startIcon={<RefreshIcon />}
+                onClick={onRegenerate}
+                fullWidth
+              >
+                Gerar novo QR Code
+              </Button>
+              <Button variant="outlined" onClick={onRegenerate} fullWidth>
+                Escolher outra forma de pagamento
+              </Button>
+            </Stack>
           </Stack>
         </CardContent>
       </Card>
@@ -249,6 +255,10 @@ export default function PixWaitingCard({
               ),
             }}
           />
+
+          <Button variant="outlined" fullWidth onClick={onRegenerate}>
+            Voltar e escolher outra forma de pagamento
+          </Button>
         </Stack>
       </CardContent>
     </Card>
