@@ -12,6 +12,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import Typography from "@mui/material/Typography";
 import Link from "next/link";
+import Divider from "@mui/material/Divider";
 import CourseGridModal from "./CourseGridModal";
 
 const StyledToolbar = styled(Toolbar)(() => ({
@@ -74,6 +75,7 @@ export default function AppAppBar() {
               >
                 Quem somos
               </Button>
+              <Divider orientation="vertical" flexItem sx={{ mx: 0.5, borderColor: "rgba(99,179,237,0.25)" }} />
               <Button
                 variant="text"
                 color="info"
