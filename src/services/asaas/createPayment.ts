@@ -84,19 +84,21 @@ export async function createPayment(input: CreatePaymentInput) {
       ? PaymentStatus.PAID
       : PaymentStatus.PENDING;
 
-  // 5. Salva no Prisma com dados do PIX
-  const payment = await prisma.payment.create({
-    data: {
-      userId,
-      asaasInvoiceId: paymentData.id,
-      value,
-      dueDate: new Date(dueDate),
-      status: dbStatus,
-      billingType,
-      pixQrCode: pixQrCode ?? null,
-      pixKey: pixKey ?? null,
-      pixExpirationDate: pixExpirationDate ? new Date(pixExpirationDate) : null,
-    },
+  // 5. Salva no Prisma com dados do PIX (upsert para suportar regeneração)
+  const paymentRecord = {
+    asaasInvoiceId: paymentData.id,
+    value,
+    dueDate: new Date(dueDate),
+    status: dbStatus,
+    billingType,
+    pixQrCode: pixQrCode ?? null,
+    pixKey: pixKey ?? null,
+    pixExpirationDate: pixExpirationDate ? new Date(pixExpirationDate) : null,
+  };
+  const payment = await prisma.payment.upsert({
+    where: { userId },
+    create: { userId, ...paymentRecord },
+    update: paymentRecord,
   });
   console.log(payment);
 

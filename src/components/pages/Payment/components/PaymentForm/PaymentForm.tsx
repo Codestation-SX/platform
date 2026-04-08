@@ -251,19 +251,21 @@ export default function PaymentForm({ onPixGenerated }: Props) {
                 {submitError}
               </Typography>
             )}
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              disabled={submitting}
-              startIcon={
-                submitting ? (
-                  <CircularProgress size={18} color="inherit" />
-                ) : null
-              }
-            >
-              {submitting ? "Processando..." : "Confirmar pagamento"}
-            </Button>
+            {paymentType !== "PIX" && (
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={submitting}
+                startIcon={
+                  submitting ? (
+                    <CircularProgress size={18} color="inherit" />
+                  ) : null
+                }
+              >
+                {submitting ? "Processando..." : "Confirmar pagamento"}
+              </Button>
+            )}
             <Button
               variant="outlined"
               fullWidth
