@@ -37,7 +37,7 @@ const POLL_INTERVAL_MS = 5000;
 const MAX_SECONDS = 4 * 60; // 4 minutos
 
 function useCountdown(expirationDate?: string | null) {
-  const getSecondsLeft = useCallback(() => {
+  const initialSeconds = useCallback(() => {
     if (!expirationDate) return MAX_SECONDS;
     const fromExpiration = Math.floor(
       (new Date(expirationDate).getTime() - Date.now()) / 1000
@@ -45,15 +45,16 @@ function useCountdown(expirationDate?: string | null) {
     return Math.max(Math.min(fromExpiration, MAX_SECONDS), 0);
   }, [expirationDate]);
 
-  const [secondsLeft, setSecondsLeft] = useState<number | null>(() =>
-    getSecondsLeft()
-  );
+  const [secondsLeft, setSecondsLeft] = useState<number>(() => initialSeconds());
 
   useEffect(() => {
-    if (secondsLeft === null || secondsLeft <= 0) return;
-    const timer = setTimeout(() => setSecondsLeft(getSecondsLeft()), 1000);
+    if (secondsLeft <= 0) return;
+    const timer = setTimeout(
+      () => setSecondsLeft((prev) => Math.max(prev - 1, 0)),
+      1000
+    );
     return () => clearTimeout(timer);
-  }, [secondsLeft, getSecondsLeft]);
+  }, [secondsLeft]);
 
   return secondsLeft;
 }
@@ -76,7 +77,7 @@ export default function PixWaitingCard({
   const [copied, setCopied] = useState(false);
   const [paid, setPaid] = useState(false);
   const secondsLeft = useCountdown(pixExpirationDate);
-  const expired = secondsLeft !== null && secondsLeft <= 0;
+  const expired = secondsLeft <= 0;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(pixKey);
@@ -218,8 +219,7 @@ export default function PixWaitingCard({
           </Box>
 
           {/* Countdown */}
-          {secondsLeft !== null && (
-            <Box
+          <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
@@ -241,7 +241,6 @@ export default function PixWaitingCard({
                 QR Code expira em: {formatTime(secondsLeft)}
               </Typography>
             </Box>
-          )}
 
           <Divider>
             <Chip label="ou copie a chave" size="small" />
