@@ -35,14 +35,8 @@ const pages = [
   {
     id: 1,
     url: "/painel/perfil",
-    label: "Perfil",
-    description: "Gerenciar informações pessoais",
-  },
-  {
-    id: 2,
-    url: "/painel/pagamento",
-    label: "Pagamento",
-    description: "Histórico de pagamentos",
+    label: "Alterar senha",
+    description: "Redefinir sua senha de acesso",
   },
 ];
 

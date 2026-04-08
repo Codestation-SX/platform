@@ -62,14 +62,18 @@ const authOptions = NextAuth({
         session.user.role = token.role as "admin" | "student";
         session.user.contract = token.contract;
         session.user.payment = token.payment;
-        (session.user.address = token.address),
-          (session.user.asaasCustomerId = token.asaasCustomerId);
-        session.user.cpf;
+        session.user.address = token.address;
+        session.user.asaasCustomerId = token.asaasCustomerId;
+        session.user.cpf = token.cpf as string;
+        session.user.birthDate = token.birthDate as string;
+        session.user.cidade = token.cidade as string;
+        session.user.estado = token.estado as string;
       }
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
+        // Primeira execução: login — preenche todos os campos do token
         const userData = await prisma.user.findUnique({
           where: { id: user.id },
           include: {
@@ -92,12 +96,39 @@ const authOptions = NextAuth({
             (userData?.payment?.status as keyof typeof STATUS_PAYMENT) ||
             "PENDING",
         };
+        token.paymentDeferred = userData?.paymentDeferred ?? false;
         token.asaasCustomerId = userData?.asaasCustomerId as string;
         token.address = {
           number: userData?.address?.number ?? "",
           zipCode: userData?.address?.zipCode ?? "",
         };
         token.cpf = userData?.cpf ?? "";
+        token.birthDate = userData?.birthDate?.toISOString() ?? "";
+        token.cidade = userData?.address?.city ?? "";
+        token.estado = userData?.address?.state ?? "";
+      } else if (token.id) {
+        // Requisições subsequentes: atualiza campos dinâmicos do banco
+        const userData = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: {
+            paymentDeferred: true,
+            payment: { select: { status: true } },
+            contract: { select: { isSigned: true, isValidated: true } },
+          },
+        });
+
+        if (userData) {
+          token.paymentDeferred = userData.paymentDeferred ?? false;
+          token.payment = {
+            status:
+              (userData.payment?.status as keyof typeof STATUS_PAYMENT) ||
+              "PENDING",
+          };
+          token.contract = {
+            isSigned: userData.contract?.isSigned || false,
+            isValidated: userData.contract?.isValidated || false,
+          };
+        }
       }
 
       return token;

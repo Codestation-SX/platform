@@ -2,6 +2,42 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { validateAdminAccess } from "@/utils/validateAdminAccess";
 
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params;
+
+  const authorized = await validateAdminAccess(req);
+  if (!authorized)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const { ativo } = await req.json();
+
+    if (typeof ativo !== "boolean") {
+      return NextResponse.json(
+        { error: "Campo 'ativo' deve ser boolean" },
+        { status: 400 }
+      );
+    }
+
+    const user = await prisma.user.update({
+      where: { id },
+      data: { ativo },
+      select: { id: true, ativo: true },
+    });
+
+    return NextResponse.json(user);
+  } catch (error) {
+    console.error("[PATCH /api/backoffice/users/[id]]", error);
+    return NextResponse.json(
+      { error: "Erro ao atualizar status do usuário" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }

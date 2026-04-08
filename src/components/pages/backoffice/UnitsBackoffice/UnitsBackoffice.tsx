@@ -32,7 +32,7 @@ export default function UnitsBackofficePage() {
           variant="contained"
           sx={{ mb: 2 }}
         >
-          Nova módulo
+          Novo módulo
         </Button>
       </Box>
       <BackofficeTable
@@ -40,6 +40,13 @@ export default function UnitsBackofficePage() {
         columns={[
           { field: "title", headerName: "Título", flex: 1 },
           { field: "description", headerName: "Descrição", flex: 1 },
+          {
+            field: "turma",
+            headerName: "Turma",
+            flex: 1,
+            sortable: false,
+            valueGetter: (value: any) => value?.nome ?? "—",
+          },
           {
             field: "actions",
             headerName: "Ações",
@@ -90,8 +97,8 @@ export default function UnitsBackofficePage() {
 
       {deleteId && (
         <DeleteConfirmationModal
-          title="Excluir Unidade"
-          description="Tem certeza que deseja excluir esta unidade?"
+          title="Excluir Módulo"
+          description="Tem certeza que deseja excluir este módulo?"
           onClose={() => setDeleteId(null)}
           onConfirm={async () => {
             await api

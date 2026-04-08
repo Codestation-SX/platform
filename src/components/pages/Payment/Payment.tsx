@@ -1,15 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Box, CircularProgress } from "@mui/material";
-import GeneratePaymentCard from "./components/GeneratePaymentCard";
 import PaymentConfirmedCard from "./components/PaymentConfirmedCard";
+import PixWaitingCard from "./components/PixWaitingCard";
 import { api } from "@/lib/api";
 import PaymentForm from "./components/PaymentForm";
+
 interface PaymentData {
   status: "PENDING" | "PAID" | "FAILED" | "CANCELLED";
   invoiceUrl: string;
   contractUrl: string;
+  billingType?: string | null;
+  pixQrCode?: string | null;
+  pixKey?: string | null;
+  pixExpirationDate?: string | null;
+  precoPix?: number;
 }
 
 export default function PaymentsPage() {
@@ -20,7 +26,15 @@ export default function PaymentsPage() {
     const fetchStatus = async () => {
       try {
         const res = await api.get("/api/asaas/status");
-        setPayment(res.data.data);
+        const data = res.data.data;
+        // Se já está PAID mas o middleware ainda não sabe (JWT desatualizado),
+        // atualiza o cookie do JWT e redireciona para o painel
+        if (data?.status === "PAID") {
+          await fetch("/api/auth/session");
+          window.location.href = "/painel/aulas";
+          return;
+        }
+        setPayment(data);
       } catch (err) {
         console.error("Erro ao buscar status do pagamento", err);
       } finally {
@@ -31,6 +45,31 @@ export default function PaymentsPage() {
     fetchStatus();
   }, []);
 
+  const handlePaid = useCallback(async () => {
+    await fetch("/api/auth/session");
+    window.location.href = "/painel/aulas";
+  }, []);
+
+  const handleRegenerate = useCallback(() => {
+    setPayment(null);
+  }, []);
+
+  const handlePixGenerated = useCallback(
+    (data: { pixQrCode: string; pixKey: string; pixExpirationDate?: string | null; precoPix: number }) => {
+      setPayment({
+        status: "PENDING",
+        invoiceUrl: "",
+        contractUrl: "",
+        billingType: "PIX",
+        pixQrCode: data.pixQrCode,
+        pixKey: data.pixKey,
+        pixExpirationDate: data.pixExpirationDate ?? null,
+        precoPix: data.precoPix,
+      });
+    },
+    []
+  );
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" mt={4}>
@@ -39,8 +78,23 @@ export default function PaymentsPage() {
     );
   }
 
-  if (payment?.status === "PENDING") {
-    return <PaymentForm />;
+  // PIX pendente com QR code salvo → tela de espera com polling automático
+  if (
+    payment?.status === "PENDING" &&
+    payment.billingType === "PIX" &&
+    payment.pixQrCode &&
+    payment.pixKey
+  ) {
+    return (
+      <PixWaitingCard
+        pixQrCode={payment.pixQrCode}
+        pixKey={payment.pixKey}
+        pixExpirationDate={payment.pixExpirationDate}
+        precoPix={payment.precoPix ?? 6000}
+        onPaid={handlePaid}
+        onRegenerate={handleRegenerate}
+      />
+    );
   }
 
   if (payment?.status === "PAID") {
@@ -52,5 +106,6 @@ export default function PaymentsPage() {
     );
   }
 
-  return <PaymentForm />;
+  // Sem pagamento gerado ou outro método → formulário
+  return <PaymentForm onPixGenerated={handlePixGenerated} />;
 }

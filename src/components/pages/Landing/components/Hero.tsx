@@ -1,108 +1,120 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import Container from "@mui/material/Container";
-import InputLabel from "@mui/material/InputLabel";
-import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import visuallyHidden from "@mui/utils/visuallyHidden";
-import { styled } from "@mui/material/styles";
-
-const StyledBox = styled("div")(({ theme }) => ({
-  alignSelf: "center",
-  width: "100%",
-  height: 400,
-  marginTop: theme.spacing(8),
-  borderRadius: (theme.vars || theme).shape.borderRadius,
-  outline: "6px solid",
-  outlineColor: "hsla(220, 25%, 80%, 0.2)",
-  border: "1px solid",
-  borderColor: (theme.vars || theme).palette.grey[200],
-  boxShadow: "0 0 12px 8px hsla(220, 25%, 80%, 0.2)",
-  backgroundImage: `url(${
-    process.env.TEMPLATE_IMAGE_URL || "https://mui.com"
-  }/static/screenshots/material-ui/getting-started/templates/dashboard.jpg)`,
-  backgroundSize: "cover",
-  [theme.breakpoints.up("sm")]: {
-    marginTop: theme.spacing(10),
-    height: 700,
-  },
-  ...theme.applyStyles("dark", {
-    boxShadow: "0 0 24px 12px hsla(210, 100%, 25%, 0.2)",
-    backgroundImage: `url(${
-      process.env.TEMPLATE_IMAGE_URL || "https://mui.com"
-    }/static/screenshots/material-ui/getting-started/templates/dashboard-dark.jpg)`,
-    outlineColor: "hsla(220, 20%, 42%, 0.1)",
-    borderColor: (theme.vars || theme).palette.grey[700],
-  }),
-}));
+import Link from "next/link";
+import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
+import TerminalIcon from "@mui/icons-material/Terminal";
 
 export default function Hero() {
   return (
     <Box
       id="hero"
-      sx={(theme) => ({
+      sx={{
         width: "100%",
-        backgroundRepeat: "no-repeat",
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "flex-start",
         backgroundImage:
-          "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 90%), transparent)",
-        ...theme.applyStyles("dark", {
-          backgroundImage:
-            "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 16%), transparent)",
-        }),
-      })}
+          "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(99,179,237,0.08) 0%, transparent 70%)",
+      }}
     >
       <Container
         sx={{
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          pt: { xs: 14, sm: 20 },
-          pb: { xs: 8, sm: 12 },
+          pt: { xs: 14, sm: 18 },
+          pb: { xs: 6, sm: 8 },
         }}
       >
         <Stack
-          spacing={2}
+          spacing={3}
           useFlexGap
-          sx={{ alignItems: "center", width: { xs: "100%", sm: "70%" } }}
+          sx={{ alignItems: "center", width: { xs: "100%", sm: "80%", md: "65%" }, overflow: "visible", pb: 2 }}
         >
-          <Typography
-            variant="h1"
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              alignItems: "center",
-              fontSize: "clamp(3rem, 10vw, 3.5rem)",
-            }}
-          >
-            Aprenda&nbsp;
+          <Chip
+            icon={<TerminalIcon sx={{ fontSize: "0.875rem !important" }} />}
+            label="// plataforma de QA"
+            color="primary"
+            size="small"
+            sx={{ fontFamily: "var(--font-jetbrains, monospace)", letterSpacing: "1px" }}
+          />
+
+          <Box sx={{ width: "100%", overflow: "visible", paddingBottom: "20px" }}>
             <Typography
-              component="span"
               variant="h1"
-              sx={(theme) => ({
-                fontSize: "inherit",
-                color: "primary.main",
-                ...theme.applyStyles("dark", {
-                  color: "primary.light",
-                }),
-              })}
+              component="div"
+              sx={{
+                textAlign: "center",
+                fontSize: { xs: "1.5rem", sm: "2rem", md: "2.4rem" },
+                fontFamily: "var(--font-syne, sans-serif)",
+                fontWeight: 700,
+                lineHeight: "1.6",
+                color: "text.primary",
+                overflow: "visible",
+                paddingBottom: "0.3em",
+              }}
             >
-              QA na prática
+              Aprenda{" "}
+              <Box
+                component="span"
+                sx={{
+                  color: "primary.main",
+                  textShadow: "0 0 40px rgba(99,179,237,0.35)",
+                }}
+              >
+                QA
+              </Box>{" "}
+              na prática e entre para o mercado de tecnologia
             </Typography>
-          </Typography>
+          </Box>
 
           <Typography
+            variant="body1"
             sx={{
               textAlign: "center",
               color: "text.secondary",
-              width: { sm: "100%", md: "80%" },
+              maxWidth: 520,
+              lineHeight: 1.8,
             }}
           >
-            Domine testes de software com nossos cursos online. Acesse conteúdos
-            atualizados, práticos e focados no mercado de QA.
+            Aprenda Testes de Software do zero ao avançado, com projetos reais,
+            automação de testes e preparação para entrevistas.
           </Typography>
+
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            useFlexGap
+            sx={{ pt: 1 }}
+          >
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              startIcon={<RocketLaunchIcon />}
+              LinkComponent={Link}
+              href="/matricula"
+              sx={{ px: 4 }}
+            >
+              Matricule-se
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              size="large"
+              LinkComponent={Link}
+              href="/login"
+              sx={{ px: 4 }}
+            >
+              Acessar plataforma
+            </Button>
+          </Stack>
+
         </Stack>
       </Container>
     </Box>

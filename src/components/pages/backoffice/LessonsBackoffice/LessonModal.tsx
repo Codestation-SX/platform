@@ -28,7 +28,8 @@ const lessonSchema = z.object({
   videoUrl: z.string().url("URL inválida"),
   duration: z.coerce.number().positive("Deve ser um número positivo"),
   isFree: z.boolean(),
-  unitId: z.string().min(1, "Unidade é obrigatória"),
+  unitId: z.string().min(1, "Módulo é obrigatório"),
+  turmaId: z.string().min(1, "Turma é obrigatória"),
 });
 
 type LessonFormData = z.infer<typeof lessonSchema>;
@@ -45,6 +46,7 @@ export default function LessonModal({ id, onClose, onSaved, open }: Props) {
   const { success } = useToast();
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+
   const { data: lessonData } = useSWR(
     isEdit ? `/api/backoffice/lessons/${id}` : null,
     async (url: string) => {
@@ -52,8 +54,17 @@ export default function LessonModal({ id, onClose, onSaved, open }: Props) {
       return res.data;
     }
   );
+
   const { data: units } = useSWR(
     "/api/backoffice/units",
+    async (url: string) => {
+      const res = await api.get(url);
+      return res.data;
+    }
+  );
+
+  const { data: turmas } = useSWR(
+    "/api/backoffice/turmas",
     async (url: string) => {
       const res = await api.get(url);
       return res.data;
@@ -72,8 +83,8 @@ export default function LessonModal({ id, onClose, onSaved, open }: Props) {
       videoUrl: "",
       duration: 0,
       isFree: false,
-
       unitId: "",
+      turmaId: "",
     },
   });
 
@@ -86,8 +97,8 @@ export default function LessonModal({ id, onClose, onSaved, open }: Props) {
         videoUrl: "",
         duration: 0,
         isFree: false,
-
         unitId: "",
+        turmaId: "",
       });
     }
   }, [isEdit, lessonData, reset]);
@@ -109,8 +120,8 @@ export default function LessonModal({ id, onClose, onSaved, open }: Props) {
         videoUrl: "",
         duration: 0,
         isFree: false,
-
         unitId: "",
+        turmaId: "",
       });
       success(`Lição ${isEdit ? "editada" : "criada"} com sucesso!`);
     } catch (error) {
@@ -119,7 +130,7 @@ export default function LessonModal({ id, onClose, onSaved, open }: Props) {
       setLoading(false);
     }
   };
-  console.log({ lessonData, isValid });
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>{isEdit ? "Editar Aula" : "Nova Aula"}</DialogTitle>
@@ -155,7 +166,7 @@ export default function LessonModal({ id, onClose, onSaved, open }: Props) {
           </FormControl>
 
           <FormControl>
-            <FormLabel htmlFor="videoUrl">URL do Vídeo</FormLabel>
+            <FormLabel htmlFor="videoUrl">URL do Vídeo (Vimeo)</FormLabel>
             <Controller
               name="videoUrl"
               control={control}
@@ -164,6 +175,7 @@ export default function LessonModal({ id, onClose, onSaved, open }: Props) {
                   {...field}
                   id="videoUrl"
                   fullWidth
+                  placeholder="https://vimeo.com/..."
                   error={!!errors.videoUrl}
                   helperText={errors.videoUrl?.message}
                 />
@@ -199,11 +211,11 @@ export default function LessonModal({ id, onClose, onSaved, open }: Props) {
                 )}
               />
             }
-            label="Aula gratuita"
+            label="Aula gratuita (prévia)"
           />
 
           <FormControl>
-            <FormLabel htmlFor="unitId">Unidade</FormLabel>
+            <FormLabel htmlFor="unitId">Módulo</FormLabel>
             <Controller
               name="unitId"
               control={control}
@@ -223,6 +235,35 @@ export default function LessonModal({ id, onClose, onSaved, open }: Props) {
                       {unit.title}
                     </option>
                   ))}
+                </TextField>
+              )}
+            />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel htmlFor="turmaId">Turma</FormLabel>
+            <Controller
+              name="turmaId"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  id="turmaId"
+                  select
+                  fullWidth
+                  SelectProps={{ native: true }}
+                  error={!!errors.turmaId}
+                  helperText={errors.turmaId?.message ?? "Somente alunos desta turma verão esta aula"}
+                >
+                  <option value="">Selecione...</option>
+                  {Array.isArray(turmas) &&
+                    turmas
+                      .filter((t: any) => t.status === "ATIVA")
+                      .map((turma: any) => (
+                        <option key={turma.id} value={turma.id}>
+                          {turma.nome}
+                        </option>
+                      ))}
                 </TextField>
               )}
             />

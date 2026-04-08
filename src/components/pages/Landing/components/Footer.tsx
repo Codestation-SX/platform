@@ -8,9 +8,9 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import GitHubIcon from "@mui/icons-material/GitHub";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
-import TwitterIcon from "@mui/icons-material/X";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 
 function Copyright() {
   return (
@@ -111,25 +111,31 @@ export default function Footer() {
           <IconButton
             color="inherit"
             size="small"
-            href="https://github.com/codestation"
-            aria-label="GitHub"
+            href="https://www.instagram.com/codestation.tech/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
             sx={{ alignSelf: "center" }}
           >
-            <GitHubIcon />
+            <InstagramIcon />
           </IconButton>
           <IconButton
             color="inherit"
             size="small"
-            href="https://x.com/codestation"
-            aria-label="X"
+            href="https://wa.me/5511912059439"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="WhatsApp"
             sx={{ alignSelf: "center" }}
           >
-            <TwitterIcon />
+            <WhatsAppIcon />
           </IconButton>
           <IconButton
             color="inherit"
             size="small"
             href="https://www.linkedin.com/company/codestation/"
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label="LinkedIn"
             sx={{ alignSelf: "center" }}
           >

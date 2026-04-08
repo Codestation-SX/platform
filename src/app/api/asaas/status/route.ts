@@ -37,15 +37,30 @@ export async function GET(req: NextRequest) {
     let invoiceUrl = "";
     let shouldCreateNew = false;
 
+    const mapAsaasStatus = (s: string): string => {
+      if (["RECEIVED", "CONFIRMED"].includes(s)) return "PAID";
+      if (["OVERDUE", "FAILED"].includes(s)) return "FAILED";
+      if (s === "CANCELLED") return "CANCELLED";
+      return "PENDING";
+    };
+
     // Se já existe uma cobrança
     if (payment?.asaasInvoiceId) {
       try {
         const res = await apiAsaas.get(`/payments/${payment.asaasInvoiceId}`);
         const paymentData = res.data;
 
-        status = paymentData.status; // PENDING, PAID, etc.
+        status = mapAsaasStatus(paymentData.status);
         invoiceUrl = paymentData.invoiceUrl;
         const expired = dayjs(paymentData.dueDate).isBefore(dayjs());
+
+        // Sincroniza status no banco se necessário
+        if (status !== payment?.status) {
+          await prisma.payment.update({
+            where: { userId },
+            data: { status: status as any },
+          });
+        }
 
         if (paymentData.status === "CANCELLED" || expired) {
           shouldCreateNew = true;
@@ -107,6 +122,10 @@ export async function GET(req: NextRequest) {
         status,
         invoiceUrl,
         contractUrl: contract?.fileUrl || "",
+        billingType: payment?.billingType ?? null,
+        pixQrCode: payment?.pixQrCode ?? null,
+        pixKey: payment?.pixKey ?? null,
+        pixExpirationDate: payment?.pixExpirationDate?.toISOString() ?? null,
       },
     });
   } catch (err) {

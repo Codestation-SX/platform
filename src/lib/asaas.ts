@@ -6,8 +6,14 @@ export const apiAsaas = axios.create({
   headers: {
     accept: "application/json",
     "Content-Type": "application/json",
-    access_token: process.env.ASAAS_API_KEY
-      ? `$${process.env.ASAAS_API_KEY}`
-      : "",
   },
+});
+
+apiAsaas.interceptors.request.use((config) => {
+  const rawKey = process.env.ASAAS_API_KEY ?? "";
+  const finalKey = rawKey.startsWith("$") ? rawKey : `$${rawKey}`;
+  console.log("[Asaas] URL:", config.baseURL, config.url);
+  console.log("[Asaas] API Key (primeiros 20 chars):", finalKey.substring(0, 20));
+  config.headers["access_token"] = finalKey;
+  return config;
 });

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const paymentSchema = z
   .object({
-    paymentType: z.enum(["CREDIT_CARD", "BOLETO", "PIX"]),
+    paymentType: z.enum(["CREDIT_CARD", "PIX"]),
     cardNumber: z
       .string()
       .min(19, "Número do cartão deve conter 16 dígitos")
@@ -10,6 +10,7 @@ export const paymentSchema = z
       .or(z.literal("")),
     cvv: z.string().length(3, "CVV inválido").optional().or(z.literal("")),
     cardName: z.string().optional().or(z.literal("")),
+    holderCpf: z.string().optional().or(z.literal("")),
     expirationDate: z
       .string()
       .regex(/^\d{2}\/\d{2}$/, "Formato inválido (MM/AA)")
@@ -23,6 +24,7 @@ export const paymentSchema = z
       (data.cardNumber &&
         data.cvv &&
         data.cardName &&
+        data.holderCpf &&
         data.expirationDate &&
         data.installments),
     {

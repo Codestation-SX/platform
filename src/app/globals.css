@@ -1,0 +1,95 @@
+/* ── Hero heading — prevent descender clipping ──────────── */
+#hero .MuiTypography-h1 {
+  overflow: visible !important;
+  padding-bottom: 0.3em;
+}
+
+/* ── Backoffice tech background ─────────────────────────── */
+.backoffice-shell {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Scanlines grid overlay — lightweight, pointer-events none */
+.backoffice-shell::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(99, 179, 237, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 179, 237, 0.012) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ambient glow — top-left cyan, bottom-right purple */
+.backoffice-shell::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 50% 35% at 15% 15%, rgba(99, 179, 237, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 35% 25% at 85% 85%, rgba(183, 148, 244, 0.03) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Respect reduced-motion preference — remove animations */
+@media (prefers-reduced-motion: reduce) {
+  .backoffice-shell::before,
+  .backoffice-shell::after {
+    display: none;
+  }
+}
+
+/* ── Sidebar nav item active indicator ──────────────────── */
+.nav-active-indicator {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: #63b3ed;
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 8px rgba(99, 179, 237, 0.6);
+}
+
+/* ── Status dot pulse ───────────────────────────────────── */
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.status-pulse {
+  animation: statusPulse 2s infinite;
+}
+
+/* ── Terminal cursor blink ──────────────────────────────── */
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: cursorBlink 1s step-end infinite;
+}
+
+/* ── Fade-up entry animation ────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up-1 { animation: fadeUp 0.35s ease 0.05s both; }
+.fade-up-2 { animation: fadeUp 0.35s ease 0.10s both; }
+.fade-up-3 { animation: fadeUp 0.35s ease 0.15s both; }
+.fade-up-4 { animation: fadeUp 0.35s ease 0.20s both; }
+.fade-up-5 { animation: fadeUp 0.35s ease 0.25s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up-1, .fade-up-2, .fade-up-3, .fade-up-4, .fade-up-5 {
+    animation: none;
+  }
+}

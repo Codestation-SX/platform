@@ -23,7 +23,7 @@ interface CreatePaymentInput {
     cpfCnpj: string;
     postalCode: string;
     addressNumber: string;
-    phone: string;
+    phone?: string;
   };
 }
 
@@ -38,12 +38,15 @@ export async function createPayment(input: CreatePaymentInput) {
     creditCardHolderInfo,
   } = input;
 
+  // Asaas exige dueDate no formato YYYY-MM-DD
+  const dueDateFormatted = dueDate.substring(0, 10);
+
   // 1. Monta o body do pagamento
   const basePayload: any = {
     customer: customerId,
     billingType,
     value,
-    dueDate,
+    dueDate: dueDateFormatted,
   };
 
   // Cartão de crédito exige dados adicionais
@@ -53,31 +56,60 @@ export async function createPayment(input: CreatePaymentInput) {
   }
 
   // 2. Chama a API do Asaas
+  console.log("[Asaas] POST /payments payload:", JSON.stringify(basePayload));
   const res = await apiAsaas.post("/payments", basePayload);
   const paymentData = res.data;
+  console.log("[Asaas] POST /payments response:", JSON.stringify(paymentData));
 
   if (!paymentData.id) {
     throw new Error("Erro ao criar cobrança no Asaas");
   }
 
-  // 3. Salva no Prisma
-  const payment = await prisma.payment.create({
-    data: {
-      userId,
-      asaasInvoiceId: paymentData.id,
-      value,
-      dueDate: new Date(dueDate),
-      status: PaymentStatus.PENDING,
-    },
+  // 3. Para PIX, busca QR code e chave copia-e-cola antes de salvar
+  let pixQrCode: string | undefined;
+  let pixKey: string | undefined;
+  let pixExpirationDate: string | undefined;
+
+  if (billingType === "PIX") {
+    const pixRes = await apiAsaas.get(`/payments/${paymentData.id}/pixQrCode`);
+    pixQrCode = pixRes.data.encodedImage;
+    pixKey = pixRes.data.payload;
+    pixExpirationDate = pixRes.data.expirationDate;
+  }
+
+  // 4. Mapeia o status retornado pelo Asaas para o status interno
+  const asaasStatus: string = paymentData.status ?? "";
+  const dbStatus: PaymentStatus =
+    ["RECEIVED", "CONFIRMED"].includes(asaasStatus)
+      ? PaymentStatus.PAID
+      : PaymentStatus.PENDING;
+
+  // 5. Salva no Prisma com dados do PIX (upsert para suportar regeneração)
+  const paymentRecord = {
+    asaasInvoiceId: paymentData.id,
+    value,
+    dueDate: new Date(dueDate),
+    status: dbStatus,
+    billingType,
+    pixQrCode: pixQrCode ?? null,
+    pixKey: pixKey ?? null,
+    pixExpirationDate: pixExpirationDate ? new Date(pixExpirationDate) : null,
+  };
+  const payment = await prisma.payment.upsert({
+    where: { userId },
+    create: { userId, ...paymentRecord },
+    update: paymentRecord,
   });
   console.log(payment);
-  // 4. Retorna dados úteis
+
+  // 5. Retorna dados úteis
   return {
     asaasId: paymentData.id,
     invoiceUrl: paymentData.invoiceUrl,
     bankSlipUrl: paymentData.bankSlipUrl,
-    pixQrCode: paymentData.pixQrCode,
-    pixExpirationDate: paymentData.expirationDate,
+    pixQrCode,
+    pixKey,
+    pixExpirationDate,
     paymentLink: paymentData.invoiceUrl,
   };
 }

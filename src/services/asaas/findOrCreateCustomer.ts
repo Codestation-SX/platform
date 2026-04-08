@@ -1,5 +1,4 @@
 import { apiAsaas } from "@/lib/asaas";
-import { handleApiError } from "@/utils/api/handleApiError";
 
 export async function findOrCreateCustomer(data: {
   firstName: string;
@@ -32,6 +31,6 @@ export async function findOrCreateCustomer(data: {
 
     return createRes.data;
   } catch (error) {
-    throw handleApiError(error);
+    throw error;
   }
 }

@@ -4,13 +4,21 @@ import {
   Box,
   Button,
   CircularProgress,
+  CssBaseline,
   FormControl,
   FormLabel,
   Grid,
+  IconButton,
+  InputAdornment,
   Link,
   TextField,
+  ThemeProvider,
   Typography,
 } from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { backofficeTheme } from "@/theme/backofficeTheme";
 import LinkNext from "next/link";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
@@ -24,8 +32,8 @@ import { useState } from "react";
 import ResetPasswordModal from "./ResetPasswordModal";
 
 const signInSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email"),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
+  email: z.string().min(1, "E-mail é obrigatório").email("E-mail inválido"),
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
   remember: z.boolean().optional(),
 });
 
@@ -36,6 +44,7 @@ export default function SignIn({ role }: { role?: Role }) {
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState(false);
   const {
     control,
     handleSubmit,
@@ -76,28 +85,44 @@ export default function SignIn({ role }: { role?: Role }) {
   };
 
   return (
-    <>
+    <ThemeProvider theme={backofficeTheme}>
+      <CssBaseline />
+      <div className="backoffice-shell">
       <StyledContainer direction="column" justifyContent="space-between">
         <Backdrop
           open={isLoading}
           sx={{
-            color: "#fff",
+            color: "#63b3ed",
             zIndex: (t) => t.zIndex.modal + 1,
-            backdropFilter: "blur(2px)",
-            bgcolor: "rgba(0,0,0,0.2)",
+            backdropFilter: "blur(4px)",
+            bgcolor: "rgba(5,8,16,0.6)",
           }}
           aria-label="Carregando"
         >
           <CircularProgress color="inherit" />
         </Backdrop>
-        <StyledCard>
-          <Typography component="h1" fontWeight={700}>
-            CodeStation
-          </Typography>
+        <StyledCard sx={{ maxWidth: 480 }}>
+          <Box sx={{ width: "100%", mb: -1 }}>
+            <IconButton component={LinkNext} href="/" size="small" sx={{ color: "text.secondary" }}>
+              <ArrowBackIcon fontSize="small" />
+            </IconButton>
+          </Box>
           <Typography
             component="h1"
-            variant="h4"
-            sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
+            fontWeight={800}
+            sx={{
+              fontFamily: "var(--font-syne, sans-serif)",
+              fontSize: "1.1rem",
+              letterSpacing: "1px",
+              color: "#63b3ed",
+            }}
+          >
+            CODE<span style={{ color: "#e2e8f0" }}>STATION</span>
+          </Typography>
+          <Typography
+            component="h2"
+            variant="h5"
+            sx={{ width: "100%", fontWeight: 700, color: "text.primary" }}
           >
             {role === "student" ? "Área do aluno" : "Backoffice"}
           </Typography>
@@ -123,7 +148,7 @@ export default function SignIn({ role }: { role?: Role }) {
                     {...field}
                     id="email"
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder="Digite seu email"
                     fullWidth
                     variant="outlined"
                     error={!!errors.email}
@@ -134,7 +159,7 @@ export default function SignIn({ role }: { role?: Role }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel htmlFor="password">Password</FormLabel>
+              <FormLabel htmlFor="password">Senha</FormLabel>
               <Controller
                 name="password"
                 control={control}
@@ -142,12 +167,26 @@ export default function SignIn({ role }: { role?: Role }) {
                   <TextField
                     {...field}
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••"
                     fullWidth
                     variant="outlined"
                     error={!!errors.password}
                     helperText={errors.password?.message}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword((v) => !v)}
+                            edge="end"
+                            size="small"
+                            sx={{ border: "none", backgroundColor: "transparent", "&:hover": { backgroundColor: "transparent" } }}
+                          >
+                            {showPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 )}
               />
@@ -161,37 +200,32 @@ export default function SignIn({ role }: { role?: Role }) {
               {role === "student" ? "Entrar" : "Acessar Backoffice"}
             </Button>
 
-            <Grid container alignItems={"center"}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Link
-                  component={LinkNext}
-                  type="button"
-                  href={role === "student" ? "/admin/login" : "/login"}
-                  variant="body2"
-                  sx={{ alignSelf: "center" }}
-                >
-                  {role === "student" ? "Sou colaborador" : "Sou aluno"}
-                </Link>
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Link
-                  component="button"
-                  type="button"
-                  onClick={() => setResetPasswordOpen(true)}
-                  variant="body2"
-                  sx={{ alignSelf: "center" }}
-                >
-                  Esqueceu a senha?
-                </Link>
-              </Grid>
-            </Grid>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Link
+                component={LinkNext}
+                type="button"
+                href={role === "student" ? "/admin/login" : "/login"}
+                variant="body2"
+              >
+                {role === "student" ? "Sou colaborador" : "Sou aluno"}
+              </Link>
+              <Link
+                component="button"
+                type="button"
+                onClick={() => setResetPasswordOpen(true)}
+                variant="body2"
+              >
+                Esqueceu a senha?
+              </Link>
+            </Box>
           </Box>
         </StyledCard>
       </StyledContainer>
+      </div>
       <ResetPasswordModal
         open={resetPasswordOpen}
         onClose={() => setResetPasswordOpen(false)}
       />
-    </>
+    </ThemeProvider>
   );
 }

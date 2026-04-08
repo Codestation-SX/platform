@@ -13,6 +13,7 @@ const lessonSchema = z.object({
   duration: z.number().int().positive(),
   isFree: z.boolean(),
   unitId: z.string().min(1),
+  turmaId: z.string().min(1),
 });
 
 const updateSchema = lessonSchema.extend({
@@ -68,6 +69,9 @@ export async function GET(req: NextRequest) {
       orderBy,
       skip: (page - 1) * limit,
       take: limit,
+      include: {
+        turma: { select: { id: true, nome: true } },
+      },
     });
 
     const total = await prisma.lesson.count({ where: whereClause });
@@ -82,7 +86,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  console.log();
   const authorized = await validateAdminAccess(req);
   if (!authorized)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

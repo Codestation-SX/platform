@@ -13,13 +13,16 @@ import { Controller, Control, useWatch } from "react-hook-form";
 import { PaymentFormValues } from "./paymentSchema";
 import { getCardBrand } from "@/lib/getCardBrand";
 import { formatCardNumber } from "@/lib/formatCardNumber";
+import CardBrandIcon from "./CardBrandIcon";
 
 export function CreditCardFields({
   control,
   errors,
+  precoCurso = 1200,
 }: {
   control: Control<PaymentFormValues>;
   errors: any;
+  precoCurso?: number;
 }) {
   const cardNumber = useWatch({ control, name: "cardNumber" }) || "";
   const brand = getCardBrand(cardNumber);
@@ -28,9 +31,7 @@ export function CreditCardFields({
     <Stack spacing={2}>
       {/* Número do cartão */}
       <FormControl error={!!errors.cardNumber}>
-        <FormLabel>
-          Número do cartão {brand && <strong>({brand})</strong>}
-        </FormLabel>
+        <FormLabel>Número do cartão</FormLabel>
         <Controller
           name="cardNumber"
           control={control}
@@ -40,6 +41,7 @@ export function CreditCardFields({
               placeholder="0000 0000 0000 0000"
               size="small"
               onChange={(e) => field.onChange(formatCardNumber(e.target.value))}
+              endAdornment={<CardBrandIcon brand={brand} />}
             />
           )}
         />
@@ -55,7 +57,7 @@ export function CreditCardFields({
           render={({ field }) => (
             <OutlinedInput
               {...field}
-              placeholder="João da Silva"
+              placeholder="Insira seu nome igual ao que está no cartão"
               size="small"
             />
           )}
@@ -63,9 +65,35 @@ export function CreditCardFields({
         <FormHelperText>{errors.cardName?.message}</FormHelperText>
       </FormControl>
 
+      {/* CPF do titular do cartão */}
+      <FormControl error={!!errors.holderCpf}>
+        <FormLabel>CPF do titular do cartão</FormLabel>
+        <Controller
+          name="holderCpf"
+          control={control}
+          render={({ field }) => (
+            <OutlinedInput
+              {...field}
+              placeholder="000.000.000-00"
+              size="small"
+              inputProps={{ maxLength: 14 }}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
+                const masked = digits
+                  .replace(/(\d{3})(\d)/, "$1.$2")
+                  .replace(/(\d{3})(\d)/, "$1.$2")
+                  .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+                field.onChange(masked);
+              }}
+            />
+          )}
+        />
+        <FormHelperText>{errors.holderCpf?.message}</FormHelperText>
+      </FormControl>
+
       <Box display="flex" gap={2}>
         {/* Validade */}
-        <FormControl error={!!errors.expirationDate}>
+        <FormControl error={!!errors.expirationDate} sx={{ flex: 1 }}>
           <FormLabel>Validade (MM/AA)</FormLabel>
           <Controller
             name="expirationDate"
@@ -73,11 +101,8 @@ export function CreditCardFields({
             render={({ field }) => (
               <OutlinedInput
                 {...field}
-                placeholder="07/29"
+                placeholder="00/00"
                 size="small"
-                sx={{
-                  width: "100px",
-                }}
                 inputProps={{ maxLength: 5 }}
                 onChange={(e) => {
                   const raw = e.target.value.replace(/\D/g, "").slice(0, 4);
@@ -93,7 +118,7 @@ export function CreditCardFields({
           <FormHelperText>{errors.expirationDate?.message}</FormHelperText>
         </FormControl>
         {/* CVV */}
-        <FormControl error={!!errors.cvv}>
+        <FormControl error={!!errors.cvv} sx={{ flex: 1 }}>
           <FormLabel>CVV</FormLabel>
           <Controller
             name="cvv"
@@ -101,11 +126,8 @@ export function CreditCardFields({
             render={({ field }) => (
               <OutlinedInput
                 {...field}
-                placeholder="123"
+                placeholder="000"
                 size="small"
-                sx={{
-                  width: "100px",
-                }}
                 inputProps={{ maxLength: 3 }}
                 onChange={(e) =>
                   field.onChange(e.target.value.replace(/\D/g, "").slice(0, 3))
@@ -134,7 +156,7 @@ export function CreditCardFields({
                 const count = i + 1;
                 return (
                   <option key={count} value={`${count}`}>
-                    {count}x de R$ {(1200 / count).toFixed(2)} sem juros
+                    {count}x de R$ {(precoCurso / count).toFixed(2)} sem juros
                   </option>
                 );
               })}

@@ -11,68 +11,57 @@ export async function GET(req: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    const isAdmin = token?.role === "admin";
-    const userId = token?.id;
-
-    if (!token || !userId) {
+    if (!token || !token.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Condições para liberação de aulas pagas para alunos
-    let canSeePaidLessons = false;
+    const isAdmin = token.role === "admin";
 
-    if (!isAdmin) {
-      const contract = await prisma.contract.findUnique({
-        where: { userId },
+    // Admin vê todas as aulas sem restrição
+    if (isAdmin) {
+      const units = await prisma.unit.findMany({
+        where: { deletedAt: null },
+        orderBy: { order: "asc" },
+        include: {
+          lessons: {
+            where: { deletedAt: null },
+            orderBy: { order: "asc" },
+          },
+        },
       });
-
-      const payment = await prisma.payment.findUnique({
-        where: { userId },
-      });
-
-      canSeePaidLessons =
-        !!contract?.isSigned &&
-        !!contract?.isValidated &&
-        !!payment &&
-        payment.status === "PAID";
+      return NextResponse.json(units);
     }
-    // Consulta das units com as aulas conforme regras de visibilidade
+
+    // Busca o aluno com turma e status ativo
+    const aluno = await prisma.user.findUnique({
+      where: { id: token.id as string },
+      select: { turmaId: true, ativo: true, turma: { select: { status: true } } },
+    });
+
+    // Aluno sem turma, inativo ou com turma encerrada não vê nenhuma aula
+    if (!aluno?.turmaId || aluno.ativo === false || aluno.turma?.status !== "ATIVA") {
+      return NextResponse.json([]);
+    }
+
+    // Aluno com turma vê somente as aulas da sua turma
     const units = await prisma.unit.findMany({
       where: {
         deletedAt: null,
         lessons: {
           some: {
             deletedAt: null,
-            ...(isAdmin
-              ? {}
-              : {
-                  OR: [
-                    { isFree: true },
-                    ...(canSeePaidLessons ? [{ isFree: false }] : []),
-                  ],
-                }),
+            turmaId: aluno.turmaId,
           },
         },
       },
-      orderBy: {
-        order: "asc",
-      },
+      orderBy: { order: "asc" },
       include: {
         lessons: {
           where: {
             deletedAt: null,
-            ...(isAdmin
-              ? {}
-              : {
-                  OR: [
-                    { isFree: true },
-                    ...(canSeePaidLessons ? [{ isFree: false }] : []),
-                  ],
-                }),
+            turmaId: aluno.turmaId,
           },
-          orderBy: {
-            order: "asc",
-          },
+          orderBy: { order: "asc" },
         },
       },
     });

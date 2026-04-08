@@ -1,6 +1,6 @@
 // utils/lessonAccess.ts
 import { Session } from "next-auth";
-import { Lesson } from "@/types/lesson"; // ajuste se necessário
+import { Lesson } from "@/types/lesson";
 
 export function isLessonAccessible(
   lesson: Lesson,
@@ -8,14 +8,7 @@ export function isLessonAccessible(
 ): boolean {
   if (!session) return false;
 
-  const isAdmin = session.user.role === "admin";
-  const isFree = lesson.isFree;
-
-  if (isAdmin) return true;
-
-  const hasContractValidated =
-    session.user.contract?.isSigned && session.user.contract?.isValidated;
-  const hasPaymentConfirmed = session.user.payment?.status === "CONFIRMED";
-
-  return isFree || (hasContractValidated && hasPaymentConfirmed);
+  // A API já filtra as aulas por turma e status do aluno.
+  // Se a aula apareceu na lista, o aluno tem acesso.
+  return true;
 }
