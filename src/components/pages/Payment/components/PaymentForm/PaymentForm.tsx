@@ -96,6 +96,28 @@ export default function PaymentForm({ onPixGenerated }: Props) {
     setPixAutoSubmitting(true);
     setSubmitError(null);
     try {
+      // 1. Verifica se já existe um PIX pendente válido — evita duplicar cobranças no Asaas
+      const statusRes = await fetch("/api/asaas/status");
+      if (statusRes.ok) {
+        const statusData = await statusRes.json();
+        const existing = statusData?.data;
+        if (
+          existing?.status === "PENDING" &&
+          existing?.billingType === "PIX" &&
+          existing?.pixQrCode &&
+          existing?.pixKey
+        ) {
+          sessionStorage.removeItem(PAYMENT_SESSION_KEY);
+          onPixGenerated?.({
+            pixQrCode: existing.pixQrCode,
+            pixKey: existing.pixKey,
+            pixExpirationDate: existing.pixExpirationDate ?? null,
+          });
+          return;
+        }
+      }
+
+      // 2. Cria nova cobrança PIX no Asaas
       const payload = {
         userId: session.user.id,
         ...(session.user.asaasCustomerId && {
