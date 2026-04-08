@@ -212,6 +212,15 @@ export default function SignIn({ role }: { role?: Role }) {
                 Esqueceu a senha?
               </Link>
             </Box>
+
+            <Button
+              component={LinkNext}
+              href="/"
+              variant="outlined"
+              fullWidth
+            >
+              Voltar para o início
+            </Button>
           </Box>
         </StyledCard>
       </StyledContainer>
