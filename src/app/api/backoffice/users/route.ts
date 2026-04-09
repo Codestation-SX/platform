@@ -46,10 +46,20 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const q = searchParams.get("q") || "";
     const filters = parseFilters(searchParams);
     const where = {
       deletedAt: null,
       ...filters,
+      ...(q
+        ? {
+            OR: [
+              { firstName: { contains: q, mode: "insensitive" as const } },
+              { lastName: { contains: q, mode: "insensitive" as const } },
+              { email: { contains: q, mode: "insensitive" as const } },
+            ],
+          }
+        : {}),
     };
     const orderBy = parseSortParams(searchParams, ["title", "createdAt"]);
     const users = await prisma.user.findMany({

@@ -60,11 +60,20 @@ export function PaginatedDataGridInner<T>(
   });
 
   const [sortModel, setSortModel] = useState<GridSortModel>([]);
+  const [filterModel, setFilterModel] = useState<GridFilterModel>({ items: [] });
+
+  const quickFilterValue = filterModel.quickFilterValues?.join(" ").trim() || "";
+
+  const handleFilterModelChange = (model: GridFilterModel) => {
+    setFilterModel(model);
+    setPaginationModel((prev) => ({ ...prev, page: 0 }));
+  };
 
   const queryParams = new URLSearchParams({
     page: String(paginationModel.page + 1),
     limit: String(paginationModel.pageSize),
     ...buildSortQuery(sortModel),
+    ...(quickFilterValue ? { q: quickFilterValue } : {}),
   }).toString();
 
   const separator = endpoint.includes("?") ? "&" : "?";
@@ -127,6 +136,9 @@ export function PaginatedDataGridInner<T>(
           sortingMode="server"
           sortModel={sortModel}
           onSortModelChange={setSortModel}
+          filterMode="server"
+          filterModel={filterModel}
+          onFilterModelChange={handleFilterModelChange}
           showToolbar
           slots={{ toolbar: GridToolbar }}
           slotProps={{
