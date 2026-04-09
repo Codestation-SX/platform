@@ -204,6 +204,7 @@ export async function DELETE(req: NextRequest) {
         deletedAt: new Date(),
         email: `deleted_${id}@deleted.invalid`,
         cpf: `deleted_${id}`,
+        asaasCustomerId: null,
       },
     });
 
