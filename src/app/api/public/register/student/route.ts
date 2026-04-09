@@ -17,8 +17,8 @@ export async function POST(req: Request) {
     });
 
     // ✅ Verifica se email já está cadastrado
-    const emailExists = await prisma.user.findUnique({
-      where: { email: data.email },
+    const emailExists = await prisma.user.findFirst({
+      where: { email: data.email, deletedAt: null },
     });
 
     if (emailExists) {
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const cpfExists = await prisma.user.findUnique({ where: { cpf: data.cpf } });
+    const cpfExists = await prisma.user.findFirst({ where: { cpf: data.cpf, deletedAt: null } });
     if (cpfExists) {
       return NextResponse.json(
         { error: "CPF já cadastrado. Se você já possui uma conta, acesse pelo login." },

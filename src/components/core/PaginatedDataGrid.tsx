@@ -67,7 +67,8 @@ export function PaginatedDataGridInner<T>(
     ...buildSortQuery(sortModel),
   }).toString();
 
-  const urlMouted = `${endpoint}?${queryParams}`;
+  const separator = endpoint.includes("?") ? "&" : "?";
+  const urlMouted = `${endpoint}${separator}${queryParams}`;
 
   const { data, isLoading, error, mutate } = useSWR<PaginatedResponse<T>>(
     urlMouted,
