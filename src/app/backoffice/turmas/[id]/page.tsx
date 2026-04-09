@@ -78,6 +78,8 @@ export default function GerenciarTurmaPage() {
   const [processando, setProcessando] = useState<string | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
+  const [filtroDataInicio, setFiltroDataInicio] = useState("");
+  const [filtroDataFim, setFiltroDataFim] = useState("");
 
   // Dialog de confirmação de transferência
   const [conflito, setConflito] = useState<Conflito | null>(null);
@@ -227,6 +229,13 @@ export default function GerenciarTurmaPage() {
       setErro(e.message);
     }
   };
+
+  const pendentesFiltrados = pendentes.filter((a) => {
+    const dt = new Date(a.createdAt);
+    if (filtroDataInicio && dt < new Date(filtroDataInicio)) return false;
+    if (filtroDataFim && dt > new Date(`${filtroDataFim}T23:59:59.999Z`)) return false;
+    return true;
+  });
 
   // Alunos filtrados pela busca (excluindo quem já está na turma)
   const alunosParaAdicionar = todosAlunos
@@ -408,7 +417,30 @@ export default function GerenciarTurmaPage() {
           {/* Aba 1: alunos sem turma */}
           {aba === 1 && (
             <Box mt={2}>
-              {pendentes.length === 0 ? (
+              <Stack direction="row" spacing={2} mb={2} alignItems="center">
+                <TextField
+                  label="Cadastro de"
+                  type="date"
+                  size="small"
+                  value={filtroDataInicio}
+                  onChange={(e) => setFiltroDataInicio(e.target.value)}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                />
+                <TextField
+                  label="Cadastro até"
+                  type="date"
+                  size="small"
+                  value={filtroDataFim}
+                  onChange={(e) => setFiltroDataFim(e.target.value)}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                />
+                {(filtroDataInicio || filtroDataFim) && (
+                  <Button size="small" onClick={() => { setFiltroDataInicio(""); setFiltroDataFim(""); }}>
+                    Limpar
+                  </Button>
+                )}
+              </Stack>
+              {pendentesFiltrados.length === 0 ? (
                 <Card>
                   <CardContent>
                     <Typography color="text.secondary">
@@ -419,7 +451,7 @@ export default function GerenciarTurmaPage() {
               ) : (
                 <Card>
                   <List disablePadding>
-                    {pendentes.map((aluno, index) => (
+                    {pendentesFiltrados.map((aluno, index) => (
                       <Box key={aluno.id}>
                         <ListItem
                           secondaryAction={
@@ -465,7 +497,7 @@ export default function GerenciarTurmaPage() {
                             }
                           />
                         </ListItem>
-                        {index < pendentes.length - 1 && <Divider component="li" />}
+                        {index < pendentesFiltrados.length - 1 && <Divider component="li" />}
                       </Box>
                     ))}
                   </List>
