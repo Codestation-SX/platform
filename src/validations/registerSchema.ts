@@ -19,7 +19,7 @@ export const registerSchema = z
   .object({
     firstName: z.string().min(1, "Nome obrigatório"),
     lastName: z.string().min(1, "Sobrenome obrigatório"),
-    // rg: z.string().optional(),
+    rg: z.string().optional(),
     cpf: z.string().regex(cpfRegex, "CPF inválido"),
     birthDate: z.date({ required_error: "Data de nascimento obrigatória" }),
     educationLevel: z.string().min(1, "Escolaridade obrigatória"),
