@@ -200,7 +200,11 @@ export async function DELETE(req: NextRequest) {
 
     const deletedUser = await prisma.user.update({
       where: { id },
-      data: { deletedAt: new Date() },
+      data: {
+        deletedAt: new Date(),
+        email: `deleted_${id}@deleted.invalid`,
+        cpf: `deleted_${id}`,
+      },
     });
 
     return NextResponse.json({ success: true, id: deletedUser.id });
