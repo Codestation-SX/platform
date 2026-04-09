@@ -47,6 +47,8 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
     const q = searchParams.get("q") || "";
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
     const filters = parseFilters(searchParams);
     const where = {
       deletedAt: null,
@@ -58,6 +60,14 @@ export async function GET(req: NextRequest) {
               { lastName: { contains: q, mode: "insensitive" as const } },
               { email: { contains: q, mode: "insensitive" as const } },
             ],
+          }
+        : {}),
+      ...(from || to
+        ? {
+            createdAt: {
+              ...(from ? { gte: new Date(from) } : {}),
+              ...(to ? { lte: new Date(`${to}T23:59:59.999Z`) } : {}),
+            },
           }
         : {}),
     };

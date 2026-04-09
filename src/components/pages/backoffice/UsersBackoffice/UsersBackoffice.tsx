@@ -1,7 +1,7 @@
 // UsersBackofficePage.tsx
 "use client";
 import { GridColDef } from "@mui/x-data-grid";
-import { Box, Button, Chip, Typography } from "@mui/material";
+import { Box, Button, Chip, TextField, Typography } from "@mui/material";
 import BackofficeTable, {
   PaginatedDataGridHandle,
 } from "@/components/core/PaginatedDataGrid";
@@ -16,6 +16,16 @@ export function UsersBackofficePage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
+
+  const endpoint = (() => {
+    const params = new URLSearchParams();
+    if (dataInicio) params.set("from", dataInicio);
+    if (dataFim) params.set("to", dataFim);
+    const qs = params.toString();
+    return qs ? `/api/backoffice/users?${qs}` : "/api/backoffice/users";
+  })();
 
   const handleToggleAtivo = async (id: string, ativo: boolean) => {
     setToggling(id);
@@ -124,7 +134,31 @@ export function UsersBackofficePage() {
         </Box>
       </Box>
 
-      <BackofficeTable columns={columns} endpoint="/api/backoffice/users" ref={gridRef} />
+      <Box display="flex" gap={2} mb={2} alignItems="center">
+        <TextField
+          label="Matrícula de"
+          type="date"
+          size="small"
+          value={dataInicio}
+          onChange={(e) => setDataInicio(e.target.value)}
+          slotProps={{ inputLabel: { shrink: true } }}
+        />
+        <TextField
+          label="Matrícula até"
+          type="date"
+          size="small"
+          value={dataFim}
+          onChange={(e) => setDataFim(e.target.value)}
+          slotProps={{ inputLabel: { shrink: true } }}
+        />
+        {(dataInicio || dataFim) && (
+          <Button size="small" onClick={() => { setDataInicio(""); setDataFim(""); }}>
+            Limpar
+          </Button>
+        )}
+      </Box>
+
+      <BackofficeTable columns={columns} endpoint={endpoint} ref={gridRef} />
 
       {isOpen && (
         <UserModal
