@@ -29,7 +29,7 @@ export function CreditCardFields({
   const cardNumber = useWatch({ control, name: "cardNumber" }) || "";
   const brand = getCardBrand(cardNumber);
 
-  const valorFormatado = (precoCurso / 100).toLocaleString("pt-BR", {
+  const valorFormatado = precoCurso.toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
   });
