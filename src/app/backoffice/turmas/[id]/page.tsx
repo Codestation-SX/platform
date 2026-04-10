@@ -78,6 +78,7 @@ export default function GerenciarTurmaPage() {
   const [processando, setProcessando] = useState<string | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
+  const [buscaPendentes, setBuscaPendentes] = useState("");
   const [filtroDataInicio, setFiltroDataInicio] = useState("");
   const [filtroDataFim, setFiltroDataFim] = useState("");
 
@@ -234,6 +235,14 @@ export default function GerenciarTurmaPage() {
     const dt = new Date(a.createdAt);
     if (filtroDataInicio && dt < new Date(filtroDataInicio)) return false;
     if (filtroDataFim && dt > new Date(`${filtroDataFim}T23:59:59.999Z`)) return false;
+    if (buscaPendentes.trim()) {
+      const termo = buscaPendentes.toLowerCase();
+      if (
+        !a.firstName.toLowerCase().includes(termo) &&
+        !a.lastName.toLowerCase().includes(termo) &&
+        !a.email.toLowerCase().includes(termo)
+      ) return false;
+    }
     return true;
   });
 
@@ -417,7 +426,23 @@ export default function GerenciarTurmaPage() {
           {/* Aba 1: alunos sem turma */}
           {aba === 1 && (
             <Box mt={2}>
-              <Stack direction="row" spacing={2} mb={2} alignItems="center">
+              <Stack direction="row" spacing={2} mb={2} alignItems="center" flexWrap="wrap">
+                <TextField
+                  placeholder="Buscar por nome ou e-mail..."
+                  value={buscaPendentes}
+                  onChange={(e) => setBuscaPendentes(e.target.value)}
+                  size="small"
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                  sx={{ minWidth: 240 }}
+                />
                 <TextField
                   label="Cadastro de"
                   type="date"
@@ -434,8 +459,8 @@ export default function GerenciarTurmaPage() {
                   onChange={(e) => setFiltroDataFim(e.target.value)}
                   slotProps={{ inputLabel: { shrink: true } }}
                 />
-                {(filtroDataInicio || filtroDataFim) && (
-                  <Button size="small" onClick={() => { setFiltroDataInicio(""); setFiltroDataFim(""); }}>
+                {(filtroDataInicio || filtroDataFim || buscaPendentes) && (
+                  <Button size="small" onClick={() => { setFiltroDataInicio(""); setFiltroDataFim(""); setBuscaPendentes(""); }}>
                     Limpar
                   </Button>
                 )}
