@@ -8,6 +8,8 @@ import {
   Stack,
   TextField,
   Box,
+  Paper,
+  Typography,
 } from "@mui/material";
 import { Controller, Control, useWatch } from "react-hook-form";
 import { PaymentFormValues } from "./paymentSchema";
@@ -27,8 +29,23 @@ export function CreditCardFields({
   const cardNumber = useWatch({ control, name: "cardNumber" }) || "";
   const brand = getCardBrand(cardNumber);
 
+  const valorFormatado = (precoCurso / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+
   return (
     <Stack spacing={2}>
+      {/* Valor do curso */}
+      <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: "grey.50" }}>
+        <Typography variant="body2" color="text.secondary">
+          Valor do curso
+        </Typography>
+        <Typography variant="h5" fontWeight={700} color="primary">
+          {valorFormatado}
+        </Typography>
+      </Paper>
+
       {/* Número do cartão */}
       <FormControl error={!!errors.cardNumber}>
         <FormLabel>Número do cartão</FormLabel>
