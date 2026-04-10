@@ -8,7 +8,6 @@ import {
   Stack,
   TextField,
   Box,
-  Paper,
   Typography,
 } from "@mui/material";
 import { Controller, Control, useWatch } from "react-hook-form";
@@ -37,14 +36,14 @@ export function CreditCardFields({
   return (
     <Stack spacing={2}>
       {/* Valor do curso */}
-      <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: "grey.50" }}>
-        <Typography variant="body2" color="text.secondary">
-          Valor do curso
+      <Box sx={{ display: "inline-flex", alignItems: "baseline", gap: 0.5 }}>
+        <Typography variant="caption" color="text.secondary">
+          Valor:
         </Typography>
-        <Typography variant="h5" fontWeight={700} color="primary">
+        <Typography variant="h6" fontWeight={700} color="primary">
           {valorFormatado}
         </Typography>
-      </Paper>
+      </Box>
 
       {/* Número do cartão */}
       <FormControl error={!!errors.cardNumber}>
