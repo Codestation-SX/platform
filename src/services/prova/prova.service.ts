@@ -273,6 +273,7 @@ export class ProvaService {
           include: { alternativas: true },
           orderBy: { ordem: "asc" },
         },
+        alunosAtribuidos: { select: { id: true } },
       },
     });
 
@@ -292,6 +293,22 @@ export class ProvaService {
 
     if (agora > prova.dataFimDisponibilidade) {
       throw new Error("O período da prova já foi encerrado");
+    }
+
+    // Verifica se o aluno tem permissão para realizar esta prova
+    const aluno = await prisma.user.findUnique({
+      where: { id: alunoId },
+      select: { turmaId: true },
+    });
+
+    const atribuidoIndividualmente = prova.alunosAtribuidos.some(
+      (a) => a.id === alunoId
+    );
+    const pertenceATurma =
+      !!prova.turmaId && aluno?.turmaId === prova.turmaId;
+
+    if (!atribuidoIndividualmente && !pertenceATurma) {
+      throw new Error("Você não tem permissão para realizar esta prova");
     }
 
     const tentativaExistente = await prisma.provaTentativa.findUnique({
