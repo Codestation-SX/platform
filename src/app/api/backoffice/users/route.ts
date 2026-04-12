@@ -87,6 +87,7 @@ export async function GET(req: NextRequest) {
         paymentDeferred: true,
         ativo: true,
         turmaId: true,
+        turma: { select: { id: true, nome: true } },
         createdAt: true,
         updatedAt: true,
       },
