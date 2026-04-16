@@ -56,7 +56,7 @@ export default function LessonModal({ id, onClose, onSaved, open }: Props) {
   );
 
   const { data: units } = useSWR(
-    "/api/backoffice/units",
+    "/api/backoffice/units?limit=500",
     async (url: string) => {
       const res = await api.get(url);
       return res.data;
