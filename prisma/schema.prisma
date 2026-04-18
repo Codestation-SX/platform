@@ -256,6 +256,8 @@ model User {
   paymentDeferred Boolean          @default(false)
   turmaId         String?
   ativo           Boolean          @default(true)
+  lastLoginAt    DateTime?
+  sessionVersion Int       @default(1)
   address         Address?
   certificados    Certificado[]
   contract        Contract?

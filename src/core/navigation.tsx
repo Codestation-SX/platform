@@ -8,6 +8,7 @@ import HistoryEduIcon from "@mui/icons-material/HistoryEdu";
 import QuizIcon from "@mui/icons-material/Quiz";
 import GradeIcon from "@mui/icons-material/Grade";
 import GroupsIcon from "@mui/icons-material/Groups";
+import SensorsIcon from "@mui/icons-material/Sensors";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -45,6 +46,11 @@ export const NAVIGATION_BACKOFFICE: Navigation = [
     segment: "backoffice/turmas",
     title: "Turmas",
     icon: <GroupsIcon />,
+  },
+  {
+    segment: "backoffice/presenca",
+    title: "Presença",
+    icon: <SensorsIcon />,
   },
   {
     segment: "backoffice/units",
