@@ -95,6 +95,7 @@ export default function RealizarProvaPage() {
   const [tempoRestante, setTempoRestante] = useState<number | null>(null);
   const [motivoFraude, setMotivoFraude] = useState("");
   const [tentouFinalizar, setTentouFinalizar] = useState(false);
+  const [confirmandoSaida, setConfirmandoSaida] = useState(false);
   const perguntaRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // ─── Iniciar prova ───────────────────────────────────────────────
@@ -550,6 +551,35 @@ useEffect(() => {
         {erro && <Alert severity="error">{erro}</Alert>}
         {sucesso && <Alert severity="success">{sucesso}</Alert>}
 
+        {confirmandoSaida && (
+          <Alert
+            severity="warning"
+            action={
+              <Stack direction="row" spacing={1}>
+                <Button
+                  size="small"
+                  color="inherit"
+                  onClick={() => setConfirmandoSaida(false)}
+                  disabled={finalizando}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="warning"
+                  onClick={() => finalizarProva(false)}
+                  disabled={finalizando}
+                >
+                  {finalizando ? "Finalizando..." : "Confirmar saída"}
+                </Button>
+              </Stack>
+            }
+          >
+            Ao sair, a prova será encerrada e você será reprovado nas questões não respondidas. Deseja confirmar?
+          </Alert>
+        )}
+
         <Stack spacing={2}>
           {prova.perguntas.map((pergunta, index) => {
             const naoRespondida = tentouFinalizar && !respostas[pergunta.id];
@@ -610,8 +640,8 @@ useEffect(() => {
         <Stack direction="row" justifyContent="flex-end" spacing={2}>
           <Button
             variant="outlined"
-            onClick={() => router.push("/painel/provas")}
-            disabled={finalizando}
+            onClick={() => setConfirmandoSaida(true)}
+            disabled={finalizando || confirmandoSaida}
           >
             Voltar
           </Button>
