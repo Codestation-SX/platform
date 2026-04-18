@@ -84,7 +84,7 @@ export default function PaymentForm({ onPixGenerated }: Props) {
         );
       } catch {}
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Save draft on change
   useEffect(() => {

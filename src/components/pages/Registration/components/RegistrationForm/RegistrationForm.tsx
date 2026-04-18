@@ -102,7 +102,7 @@ export default function RegisterForm() {
         });
       }
     } catch {}
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Salva rascunho no sessionStorage a cada alteração
   useEffect(() => {

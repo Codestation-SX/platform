@@ -212,7 +212,7 @@ useEffect(() => {
     window.removeEventListener("blur", handleBlur);
     window.removeEventListener("beforeprint", handlePrint);
   };
-}, [etapa]);
+}, [etapa]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Copiar e colar
   useEffect(() => {
@@ -234,7 +234,7 @@ useEffect(() => {
       document.removeEventListener("paste", handlePaste);
       document.removeEventListener("cut", handleCut);
     };
-  }, [etapa]);
+  }, [etapa]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Print de tela
   useEffect(() => {
@@ -259,7 +259,7 @@ useEffect(() => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("beforeprint", handlePrint);
     };
-  }, [etapa]);
+  }, [etapa]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Temporizador
   useEffect(() => {
@@ -275,7 +275,7 @@ useEffect(() => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [tempoRestante, etapa]);
+  }, [tempoRestante, etapa]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const formatarTempo = (segundos: number) => {
     const min = Math.floor(segundos / 60);
