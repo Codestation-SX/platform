@@ -22,7 +22,6 @@ const eslintConfig = [
       "@typescript-eslint/no-wrapper-object-types": "off",
       "@typescript-eslint/no-unsafe-function-type": "off",
       "@typescript-eslint/no-unnecessary-type-constraint": "off",
-      "react-hooks/exhaustive-deps": "off",
     },
   }),
 ];
