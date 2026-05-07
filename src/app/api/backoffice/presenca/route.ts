@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const tresDiasAtras = new Date(agora.getTime() - 3 * 24 * 60 * 60 * 1000);
   const seteDiasAtras = new Date(agora.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  let where: any = { deletedAt: null, role: "student", ativo: true };
+  const where: any = { deletedAt: null, role: "student", ativo: true };
 
   if (filtro === "online") {
     where.lastLoginAt = { gte: quinzeMinutosAtras };

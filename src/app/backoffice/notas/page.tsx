@@ -118,12 +118,12 @@ export default function NotasPage() {
     if (tabAtiva !== 0) return;
     const timeout = setTimeout(() => carregarNotas(busca, ""), 400);
     return () => clearTimeout(timeout);
-  }, [busca, tabAtiva]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [busca, tabAtiva]);
 
   useEffect(() => {
     if (tabAtiva !== 1) return;
     carregarNotas("", turmaId);
-  }, [turmaId, tabAtiva]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [turmaId, tabAtiva]);
 
   const handleTabChange = (_: any, v: number) => {
     setTabAtiva(v);
