@@ -10,6 +10,17 @@ export default async function middleware(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
+  // Sessão inválida (outro login invalidou esta sessão)
+  if ((token as any)?.sessionInvalid) {
+    const loginUrl = (token as any)?.role === "admin"
+      ? new URL("/admin/login?reason=session_expired", req.url)
+      : new URL("/login?reason=session_expired", req.url);
+    const response = NextResponse.redirect(loginUrl);
+    response.cookies.delete("next-auth.session-token");
+    response.cookies.delete("__Secure-next-auth.session-token");
+    return response;
+  }
+
   // /admin/login — always accessible; redirect admin if already logged in
   if (pathname === "/admin/login") {
     if (token?.role === "admin") {

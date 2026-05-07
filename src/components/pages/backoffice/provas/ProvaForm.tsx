@@ -22,6 +22,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import {
   Control,
   Controller,
@@ -288,6 +289,29 @@ export default function ProvaForm({
   const [sucesso, setSucesso] = useState("");
   const [salvando, setSalvando] = useState(false);
   const [tooltipMsg, setTooltipMsg] = useState("");
+  const [recalculando, setRecalculando] = useState(false);
+  const [resultadoRecalculo, setResultadoRecalculo] = useState<string>("");
+
+  const handleRecalcularNotas = async () => {
+    if (!provaId) return;
+    setRecalculando(true);
+    setResultadoRecalculo("");
+    try {
+      const res = await fetch(`/api/backoffice/provas/${provaId}/recalcular-notas`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao recalcular.");
+      const total = data.resultados.length;
+      const recalculados = data.resultados.filter((r: any) => r.status === "recalculado").length;
+      const semDados = data.resultados.filter((r: any) => r.status === "sem_respostas").length;
+      setResultadoRecalculo(
+        `${recalculados} nota(s) recalculada(s) com sucesso${semDados > 0 ? `, ${semDados} aluno(s) sem dados recuperáveis` : ""}. Total: ${total} tentativa(s).`
+      );
+    } catch (e: any) {
+      setResultadoRecalculo(`Erro: ${e.message}`);
+    } finally {
+      setRecalculando(false);
+    }
+  };
 
   const {
     control,
@@ -451,18 +475,36 @@ export default function ProvaForm({
           </Typography>
         </Box>
 
-        <Button
-          component={Link}
-          href="/backoffice/provas"
-          variant="outlined"
-          startIcon={<ArrowBackIcon />}
-        >
-          Voltar
-        </Button>
+        <Stack direction="row" spacing={1}>
+          {mode === "edit" && (
+            <Button
+              variant="outlined"
+              color="warning"
+              startIcon={<RefreshIcon />}
+              onClick={handleRecalcularNotas}
+              disabled={recalculando}
+            >
+              {recalculando ? "Recalculando..." : "Recalcular notas"}
+            </Button>
+          )}
+          <Button
+            component={Link}
+            href="/backoffice/provas"
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+          >
+            Voltar
+          </Button>
+        </Stack>
       </Stack>
 
       {erro && <Alert severity="error">{erro}</Alert>}
       {sucesso && <Alert severity="success">{sucesso}</Alert>}
+      {resultadoRecalculo && (
+        <Alert severity={resultadoRecalculo.startsWith("Erro") ? "error" : "info"}>
+          {resultadoRecalculo}
+        </Alert>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
         <Stack spacing={3}>

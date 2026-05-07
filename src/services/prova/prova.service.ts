@@ -158,18 +158,7 @@ export class ProvaService {
     this.validarPayload(payload);
 
     await prisma.$transaction(async (tx) => {
-      await tx.provaAlternativa.deleteMany({
-        where: {
-          pergunta: {
-            provaId: id,
-          },
-        },
-      });
-
-      await tx.provaPergunta.deleteMany({
-        where: { provaId: id },
-      });
-
+      // Atualiza apenas os metadados da prova (datas, título, etc.)
       await tx.prova.update({
         where: { id },
         data: {
@@ -181,21 +170,92 @@ export class ProvaService {
           tempoDuracaoMinutos: payload.tempoDuracaoMinutos,
           percentualMinimoAprovacao: payload.percentualMinimoAprovacao ?? 86,
           status: payload.status ?? "RASCUNHO",
-          perguntas: {
-            create: payload.perguntas.map((pergunta) => ({
-              enunciado: pergunta.enunciado,
-              valorNota: pergunta.valorNota,
-              ordem: pergunta.ordem,
-              alternativas: {
-                create: pergunta.alternativas.map((alternativa) => ({
-                  texto: alternativa.texto,
-                  correta: alternativa.correta,
-                })),
-              },
-            })),
-          },
         },
       });
+
+      // Carrega perguntas existentes
+      const existingPerguntas = await tx.provaPergunta.findMany({
+        where: { provaId: id },
+        include: { alternativas: { orderBy: { createdAt: "asc" } } },
+        orderBy: { ordem: "asc" },
+      });
+
+      const existingByOrdem = new Map(existingPerguntas.map((p) => [p.ordem, p]));
+      const incomingOrdems = new Set(payload.perguntas.map((p) => p.ordem));
+
+      // Remove perguntas que não estão mais no payload
+      const toDelete = existingPerguntas.filter((p) => !incomingOrdems.has(p.ordem));
+      if (toDelete.length > 0) {
+        await tx.provaPergunta.deleteMany({
+          where: { id: { in: toDelete.map((p) => p.id) } },
+        });
+      }
+
+      // Reconcilia cada pergunta do payload preservando IDs existentes
+      for (const incoming of payload.perguntas) {
+        const existing = existingByOrdem.get(incoming.ordem);
+
+        if (existing) {
+          // Atualiza a pergunta existente (preserva o ID — mantém respostas dos alunos válidas)
+          await tx.provaPergunta.update({
+            where: { id: existing.id },
+            data: {
+              enunciado: incoming.enunciado,
+              valorNota: incoming.valorNota,
+              ordem: incoming.ordem,
+            },
+          });
+
+          // Reconcilia alternativas por posição (preserva IDs — mantém ProvaResposta.alternativaId válido)
+          const existingAlts = existing.alternativas;
+          const incomingAlts = incoming.alternativas;
+
+          for (let i = 0; i < incomingAlts.length; i++) {
+            if (i < existingAlts.length) {
+              await tx.provaAlternativa.update({
+                where: { id: existingAlts[i].id },
+                data: {
+                  texto: incomingAlts[i].texto,
+                  correta: incomingAlts[i].correta,
+                },
+              });
+            } else {
+              await tx.provaAlternativa.create({
+                data: {
+                  perguntaId: existing.id,
+                  texto: incomingAlts[i].texto,
+                  correta: incomingAlts[i].correta,
+                },
+              });
+            }
+          }
+
+          // Remove alternativas excedentes
+          if (existingAlts.length > incomingAlts.length) {
+            await tx.provaAlternativa.deleteMany({
+              where: {
+                id: { in: existingAlts.slice(incomingAlts.length).map((a) => a.id) },
+              },
+            });
+          }
+        } else {
+          // Cria nova pergunta (não existia antes)
+          await tx.provaPergunta.create({
+            data: {
+              provaId: id,
+              enunciado: incoming.enunciado,
+              valorNota: incoming.valorNota,
+              ordem: incoming.ordem,
+              alternativas: {
+                create: incoming.alternativas.map((a) => ({
+                  texto: a.texto,
+                  correta: a.correta,
+                })),
+              },
+            },
+          });
+        }
+      }
     });
 
     return this.obterPorId(id);
@@ -495,6 +555,70 @@ export class ProvaService {
       },
     });
   }
+  static async recalcularNotas(provaId: string) {
+    const tentativas = await prisma.provaTentativa.findMany({
+      where: {
+        provaId,
+        status: { in: ["CONCLUIDA", "ENCERRADA_POR_TEMPO"] },
+      },
+      include: {
+        respostas: true,
+        prova: {
+          include: {
+            perguntas: { include: { alternativas: true } },
+          },
+        },
+        aluno: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    const resultados = [];
+
+    for (const tentativa of tentativas) {
+      if (tentativa.respostas.length === 0) {
+        resultados.push({
+          alunoId: tentativa.alunoId,
+          nome: `${tentativa.aluno.firstName} ${tentativa.aluno.lastName}`,
+          status: "sem_respostas",
+          mensagem: "Respostas não encontradas — dados perdidos pela edição anterior",
+        });
+        continue;
+      }
+
+      const perguntas = tentativa.prova.perguntas;
+      const notaTotal = perguntas.reduce((acc, p) => acc + p.valorNota, 0);
+      let notaObtida = 0;
+
+      for (const pergunta of perguntas) {
+        const resposta = tentativa.respostas.find((r) => r.perguntaId === pergunta.id);
+        const correta = pergunta.alternativas.find((a) => a.correta);
+        if (correta && resposta?.alternativaId === correta.id) {
+          notaObtida += pergunta.valorNota;
+        }
+      }
+
+      const percentualAcerto = notaTotal > 0 ? (notaObtida / notaTotal) * 100 : 0;
+      const aprovado = percentualAcerto >= tentativa.prova.percentualMinimoAprovacao;
+
+      await prisma.provaTentativa.update({
+        where: { id: tentativa.id },
+        data: { notaTotal, notaObtida, percentualAcerto, aprovado },
+      });
+
+      resultados.push({
+        alunoId: tentativa.alunoId,
+        nome: `${tentativa.aluno.firstName} ${tentativa.aluno.lastName}`,
+        status: "recalculado",
+        notaObtida,
+        notaTotal,
+        percentualAcerto: Math.round(percentualAcerto),
+        aprovado,
+      });
+    }
+
+    return resultados;
+  }
+
   static async verificarEEncerrarProva(provaId: string) {
   const prova = await prisma.prova.findFirst({
     where: { id: provaId, deletedAt: null, status: "ATIVA" },

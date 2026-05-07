@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 
 type Params = {
@@ -6,6 +7,15 @@ type Params = {
 };
 
 export async function GET(req: Request, { params }: Params) {
+  const token = await getToken({
+    req: req as any,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  if (!token?.sub) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
+
   const { id } = await params;
 
   const tentativa = await prisma.provaTentativa.findUnique({
@@ -14,12 +24,8 @@ export async function GET(req: Request, { params }: Params) {
       prova: {
         include: {
           perguntas: {
-            include: {
-              alternativas: true,
-            },
-            orderBy: {
-              ordem: "asc",
-            },
+            include: { alternativas: true },
+            orderBy: { ordem: "asc" },
           },
         },
       },
@@ -28,60 +34,29 @@ export async function GET(req: Request, { params }: Params) {
   });
 
   if (!tentativa) {
-    return NextResponse.json(
-      { error: "Tentativa não encontrada" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Tentativa não encontrada" }, { status: 404 });
   }
 
-  const perguntas = tentativa.prova.perguntas;
-  const totalPerguntas = perguntas.length;
+  // Apenas o próprio aluno ou admin pode ver o resultado
+  if (tentativa.alunoId !== token.sub && token.role !== "admin") {
+    return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
+  }
+
+  // Usa somente as perguntas que o aluno efetivamente respondeu
+  // (caso a prova tenha sido editada e perguntas recriadas, evita mostrar questões erradas)
+  const perguntasRespondidas = tentativa.prova.perguntas.filter((p) =>
+    tentativa.respostas.some((r) => r.perguntaId === p.id)
+  );
+
   let totalAcertos = 0;
-  let notaObtida = 0;
 
-  for (const pergunta of perguntas) {
-    const respostaAluno = tentativa.respostas.find(
-      (r) => r.perguntaId === pergunta.id
-    );
-    const alternativaCorreta = pergunta.alternativas.find((a) => a.correta);
-
-    if (
-      alternativaCorreta &&
-      respostaAluno?.alternativaId === alternativaCorreta.id
-    ) {
-      totalAcertos += 1;
-      notaObtida += pergunta.valorNota; // ✅ soma a nota de cada pergunta correta
-    }
-  }
-
-  const notaTotal = perguntas.reduce((acc, p) => acc + p.valorNota, 0);
-  const percentualAcerto =
-    notaTotal > 0
-      ? Math.round((notaObtida / notaTotal) * 100)
-      : 0;
-
-  // ✅ usa o critério real da prova, não um valor fixo
-  const aprovado =
-    percentualAcerto >= tentativa.prova.percentualMinimoAprovacao;
-
-  // ✅ persiste o resultado no banco
-  await prisma.provaTentativa.update({
-    where: { id },
-    data: {
-      percentualAcerto,
-      aprovado,
-      notaObtida,
-      notaTotal,
-      dataFim: tentativa.dataFim ?? new Date(), // garante que dataFim é preenchida
-      status: tentativa.status === "EM_ANDAMENTO" ? "CONCLUIDA" : tentativa.status,
-    },
-  });
-
-  const gabaritoPerguntas = perguntas.map((pergunta) => {
+  const gabaritoPerguntas = perguntasRespondidas.map((pergunta) => {
     const respostaAluno = tentativa.respostas.find((r) => r.perguntaId === pergunta.id);
     const alternativaCorreta = pergunta.alternativas.find((a) => a.correta);
     const acertou =
       !!alternativaCorreta && respostaAluno?.alternativaId === alternativaCorreta.id;
+
+    if (acertou) totalAcertos += 1;
 
     return {
       id: pergunta.id,
@@ -98,11 +73,17 @@ export async function GET(req: Request, { params }: Params) {
     };
   });
 
+  // Usa os valores já calculados e salvos durante a finalização da tentativa
+  const percentualAcerto = Math.round(tentativa.percentualAcerto ?? 0);
+  const aprovado = tentativa.aprovado ?? false;
+  const notaObtida = tentativa.notaObtida ?? 0;
+  const notaTotal = tentativa.notaTotal ?? 0;
+
   return NextResponse.json({
     provaTitulo: tentativa.prova.titulo,
     notaPercentual: percentualAcerto,
     aprovado,
-    totalPerguntas,
+    totalPerguntas: perguntasRespondidas.length,
     totalAcertos,
     notaObtida,
     notaTotal,

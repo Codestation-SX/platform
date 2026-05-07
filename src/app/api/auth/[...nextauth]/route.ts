@@ -34,6 +34,20 @@ const authOptions = NextAuth({
 
         if (!isValid) return null;
 
+        // Incrementa sessionVersion (invalida sessões anteriores) e registra lastLoginAt
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            lastLoginAt: new Date(),
+            sessionVersion: { increment: 1 },
+          },
+        });
+
+        const updatedUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { sessionVersion: true },
+        });
+
         console.log("User authenticated:", user);
         return {
           id: user.id,
@@ -46,6 +60,7 @@ const authOptions = NextAuth({
             number: user.address?.number as string,
             zipCode: user.address?.zipCode as string,
           },
+          sessionVersion: updatedUser?.sessionVersion ?? 1,
         };
       },
     }),
@@ -106,6 +121,7 @@ const authOptions = NextAuth({
         token.birthDate = userData?.birthDate?.toISOString() ?? "";
         token.cidade = userData?.address?.city ?? "";
         token.estado = userData?.address?.state ?? "";
+        token.sessionVersion = (user as any).sessionVersion ?? 1;
       } else if (token.id) {
         // Requisições subsequentes: atualiza campos dinâmicos do banco
         const userData = await prisma.user.findUnique({
@@ -114,6 +130,7 @@ const authOptions = NextAuth({
             paymentDeferred: true,
             payment: { select: { status: true } },
             contract: { select: { isSigned: true, isValidated: true } },
+            sessionVersion: true,
           },
         });
 
@@ -128,6 +145,13 @@ const authOptions = NextAuth({
             isSigned: userData.contract?.isSigned || false,
             isValidated: userData.contract?.isValidated || false,
           };
+
+          // Verifica se a sessão ainda é válida (session única por usuário)
+          if (userData?.sessionVersion !== undefined && token.sessionVersion !== undefined) {
+            if (userData.sessionVersion !== token.sessionVersion) {
+              token.sessionInvalid = true;
+            }
+          }
         }
       }
 
