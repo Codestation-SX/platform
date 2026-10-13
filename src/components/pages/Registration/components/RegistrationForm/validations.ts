@@ -1,7 +1,6 @@
 import * as z from "zod";
 
 const cpfRegex = /^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/;
-export const rgRegex = /^\d{7,11}$/;
 const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
 
 export const addressSchema = z.object({
@@ -18,7 +17,6 @@ export const registerSchema = z
   .object({
     firstName: z.string().min(1, "Nome obrigatório"),
     lastName: z.string().min(1, "Sobrenome obrigatório"),
-    rg: z.string().regex(rgRegex, "RG inválido").optional(),
     cpf: z.string().regex(cpfRegex, "CPF inválido"),
     birthDate: z
       .date({ required_error: "Data de nascimento obrigatória" })

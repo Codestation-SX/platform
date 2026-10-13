@@ -191,7 +191,7 @@ export default function RegisterForm() {
           </Typography>
 
           <Grid container spacing={2}>
-            {["firstName", "lastName", "rg", "cpf"].map((name) => (
+            {["firstName", "lastName", "cpf"].map((name) => (
               <Grid key={name} size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>
                   <FormLabel>
@@ -199,9 +199,7 @@ export default function RegisterForm() {
                       ? "Nome"
                       : name === "lastName"
                         ? "Sobrenome"
-                        : name === "rg"
-                          ? "RG"
-                          : "CPF"}
+                        : "CPF"}
                   </FormLabel>
                   <Controller
                     name={name as keyof RegisterFormData}

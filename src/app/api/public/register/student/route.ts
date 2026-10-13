@@ -65,7 +65,6 @@ export async function POST(req: Request) {
         email: data.email,
         password: hashedPassword,
         cpf: data.cpf,
-        rg: data.rg,
         phone: data.phone,
         birthDate: data.birthDate,
         educationLevel: data.educationLevel,
