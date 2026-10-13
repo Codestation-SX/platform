@@ -288,6 +288,12 @@ export default function RegisterForm() {
                       type="tel"
                       fullWidth
                       value={field.value ?? ""}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
+                        field.onChange(digits);
+                      }}
+                      inputProps={{ inputMode: "numeric", maxLength: 11 }}
+                      placeholder="11958639439"
                       error={!!error?.message}
                       helperText={error?.message}
                     />
