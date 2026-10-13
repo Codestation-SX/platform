@@ -284,15 +284,29 @@ export default function RegisterForm() {
                   control={control}
                   render={({ field, fieldState: { error } }) => (
                     <TextField
-                      {...field}
                       type="tel"
                       fullWidth
+                      name={field.name}
+                      inputRef={field.ref}
+                      onBlur={field.onBlur}
                       value={field.value ?? ""}
                       onChange={(e) => {
                         const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
                         field.onChange(digits);
                       }}
-                      inputProps={{ inputMode: "numeric", maxLength: 11 }}
+                      onKeyDown={(e) => {
+                        const allowed = ["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Home", "End"];
+                        if (allowed.includes(e.key) || e.ctrlKey || e.metaKey) return;
+                        if (!/^\d$/.test(e.key)) {
+                          e.preventDefault();
+                          return;
+                        }
+                        if ((field.value ?? "").length >= 11) {
+                          e.preventDefault();
+                        }
+                      }}
+                      inputProps={{ inputMode: "numeric", maxLength: 11, pattern: "\\d*" }}
+                      slotProps={{ htmlInput: { inputMode: "numeric", maxLength: 11, pattern: "\\d*" } }}
                       placeholder="11958639439"
                       error={!!error?.message}
                       helperText={error?.message}
