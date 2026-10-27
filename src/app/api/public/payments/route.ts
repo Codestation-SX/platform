@@ -107,7 +107,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const result = await createPayment({ ...input, customerId });
+    // Para CREDIT_CARD: Asaas exige telefone com DDD do titular. Como o
+    // formulário de pagamento não envia o phone, buscamos do banco (fonte
+    // de verdade) e sanitizamos para dígitos puros antes de repassar.
+    const inputFinal =
+      input.billingType === "CREDIT_CARD" && input.creditCardHolderInfo
+        ? {
+            ...input,
+            creditCardHolderInfo: {
+              ...input.creditCardHolderInfo,
+              phone: (user.phone ?? "").replace(/\D/g, ""),
+            },
+          }
+        : input;
+
+    const result = await createPayment({ ...inputFinal, customerId });
 
     // Envia email de confirmação de pagamento
     await sendPaymentConfirmationEmail({
