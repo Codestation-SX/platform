@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       birthDate: new Date(body.birthDate),
     });
 
-    // ✅ Verifica se email já está cadastrado
+    // ✅ Verifica se email já está cadastrado (ativo)
     const emailExists = await prisma.user.findFirst({
       where: { email: data.email, deletedAt: null },
     });
@@ -34,6 +34,34 @@ export async function POST(req: Request) {
         { error: "CPF já cadastrado. Se você já possui uma conta, acesse pelo login." },
         { status: 400 }
       );
+    }
+
+    // ✅ Libera campos únicos de usuários soft-deletados com mesmo email/CPF.
+    // Se o admin apenas marcou deletedAt sem prefixar os uniques, a @unique do
+    // Postgres ainda bloqueia o INSERT. Aqui prefixamos os campos únicos para
+    // que o novo cadastro possa ser criado.
+    const softDeletedConflitantes = await prisma.user.findMany({
+      where: {
+        deletedAt: { not: null },
+        OR: [{ email: data.email }, { cpf: data.cpf }],
+      },
+      select: { id: true, email: true, cpf: true, asaasCustomerId: true, rg: true },
+    });
+
+    for (const u of softDeletedConflitantes) {
+      await prisma.user.update({
+        where: { id: u.id },
+        data: {
+          email: u.email.startsWith("deleted_") ? u.email : `deleted_${u.id}_${u.email}`,
+          cpf: u.cpf.startsWith("deleted_") ? u.cpf : `deleted_${u.id}_${u.cpf}`,
+          ...(u.asaasCustomerId && !u.asaasCustomerId.startsWith("deleted_")
+            ? { asaasCustomerId: `deleted_${u.id}_${u.asaasCustomerId}` }
+            : {}),
+          ...(u.rg && !u.rg.startsWith("deleted_")
+            ? { rg: `deleted_${u.id}_${u.rg}` }
+            : {}),
+        },
+      });
     }
 
     // ✅ Criptografa a senha
