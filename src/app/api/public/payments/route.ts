@@ -107,19 +107,33 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Para CREDIT_CARD: Asaas exige telefone com DDD do titular. Como o
-    // formulário de pagamento não envia o phone, buscamos do banco (fonte
-    // de verdade) e sanitizamos para dígitos puros antes de repassar.
-    const inputFinal =
-      input.billingType === "CREDIT_CARD" && input.creditCardHolderInfo
-        ? {
-            ...input,
-            creditCardHolderInfo: {
-              ...input.creditCardHolderInfo,
-              phone: (user.phone ?? "").replace(/\D/g, ""),
-            },
-          }
-        : input;
+    // Para CREDIT_CARD: Asaas exige phone, CEP e número do titular válidos.
+    // O formulário envia esses dados a partir da session (JWT), que pode
+    // estar stale se o aluno atualizou o endereço depois do login. Usamos
+    // o banco como fonte de verdade e sanitizamos antes de repassar.
+    let inputFinal = input;
+    if (input.billingType === "CREDIT_CARD" && input.creditCardHolderInfo) {
+      const zipCodeDigits = (user.address?.zipCode ?? "").replace(/\D/g, "");
+      if (!zipCodeDigits || zipCodeDigits.length !== 8) {
+        return NextResponse.json(
+          {
+            error:
+              "CEP do seu cadastro é inválido. Atualize seu endereço no perfil antes de pagar com cartão.",
+          },
+          { status: 400 }
+        );
+      }
+
+      inputFinal = {
+        ...input,
+        creditCardHolderInfo: {
+          ...input.creditCardHolderInfo,
+          phone: (user.phone ?? "").replace(/\D/g, ""),
+          postalCode: zipCodeDigits,
+          addressNumber: user.address?.number || "1",
+        },
+      };
+    }
 
     const result = await createPayment({ ...inputFinal, customerId });
 
